@@ -4,3 +4,5 @@ __pycache__/
 *.pyc
 *key*.json
 .DS_Store
+.cache/
+data/
