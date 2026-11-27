@@ -25,8 +25,6 @@ log = logging.getLogger("firescout")
 app = FastAPI(title="FireScout")
 
 _cache: dict = {}
-SENSOR = "^(modis|viirs|harmonized)$"
-DAY_HISTORY = 24 * 3600
 
 def cached(key, fn, ttl=config.CACHE_SECONDS):
     hit = _cache.get(key)
@@ -147,7 +145,6 @@ def tiles(
     lat: Optional[float] = Query(None, ge=-90, le=90),
     lon: Optional[float] = Query(None, ge=-180, le=180),
     radius_km: int = Query(150, ge=5, le=300),
-    sensor: str = Query("modis", pattern=SENSOR),
     geom: Optional[str] = GEOM,
 ):
     if layer not in L.VIS:
@@ -157,11 +154,7 @@ def tiles(
     if layer == "burn" and not pts and (lat is None or lon is None):
         raise HTTPException(400, "Click the globe to choose an area for burn scars.")
 
-    key_sensor = sensor
-
-    key = ("tiles", layer, start, end,
-           area_key(lat, lon, radius_km, pts) if layer == "burn" else None,
-           key_sensor if layer == "fire" else None)
+    key = ("tiles", layer, start, end, area_key(lat, lon, radius_km, pts) if layer == "burn" else None)
 
     def build():
         if layer == "so2":
@@ -173,11 +166,9 @@ def tiles(
                 raise HTTPException(404, "No smoke data for this window yet. Try an earlier date.")
             img = L.aer_tile_image(start, end)
         elif layer == "fire":
-            probe = "modis" if sensor == "harmonized" else sensor
-            if L.fire_collection(start, end, probe).size().getInfo() == 0 and (
-                    sensor != "harmonized" or L.fire_collection(start, end, "viirs").size().getInfo() == 0):
+            if L.fire_collection(start, end).size().getInfo() == 0:
                 raise HTTPException(404, "No fire data for this window yet. Try an earlier date.")
-            img = L.fire_tile_coded(start, end, sensor)
+            img = L.fire_tile_image(start, end)
         else:
             region = region_of(lat, lon, radius_km, pts)
             (_, _), (post_a, post_b) = L.burn_windows(end)
@@ -185,33 +176,19 @@ def tiles(
                 raise HTTPException(404, "No clear Sentinel-2 images in the 30 days before this date.")
             img = L.burn_tile_image(region, end)
         try:
-            vis = L.FIRE_VIS[sensor] if layer == "fire" else L.VIS[layer]
-            return img.getMapId(vis)["tile_fetcher"].url_format
+            return img.getMapId(L.VIS[layer])["tile_fetcher"].url_format
         except ee.EEException as exc:
             raise HTTPException(502, f"Earth Engine error: {exc}") from exc
 
-    return {"url": cached(key, build), "sensor": sensor}
+    return {"url": cached(key, build)}
 
-def _calendar(region, akey, sensor, year, month):
-    """Daily counts for one month; 'harmonized' months switch from MODIS to VIIRS on VIIRS's first day."""
-    first, last = date(year, month, 1), date(year, month, cal.monthrange(year, month)[1])
-
-    def one(s):
-        build = lambda: {"sensor": s, "year": year, "month": month, "days": L.fire_calendar(region, year, month, s)}
-        if finished(last):
-            return disk_cached(f"cal|{s}|{year}-{month:02d}|{akey}", build)
-        return cached(("fire_calendar", s, year, month, akey), build)
-
-    if sensor != "harmonized":
-        res = one(sensor)
-        return [{**d, "source": sensor.upper()} for d in res["days"]]
-    if last < L.VIIRS_FIRST:
-        return [{**d, "source": "MODIS"} for d in one("modis")["days"]]
-    if first >= L.VIIRS_FIRST:
-        return [{**d, "source": "VIIRS"} for d in one("viirs")["days"]]
-    mo, vi = one("modis")["days"], one("viirs")["days"]
-    return [({**v, "source": "VIIRS"} if date.fromisoformat(v["date"]) >= L.VIIRS_FIRST else {**m, "source": "MODIS"})
-            for m, v in zip(mo, vi)]
+def _calendar(region, akey, year, month):
+    """Daily fire-hotspot counts for one month. Finished months are kept on disk."""
+    last = date(year, month, cal.monthrange(year, month)[1])
+    build = lambda: L.fire_calendar(region, year, month)
+    if finished(last):
+        return disk_cached(f"cal|firms|{year}-{month:02d}|{akey}", build)
+    return cached(("fire_calendar", year, month, akey), build)
 
 @app.get("/api/fire_calendar", dependencies=[Depends(require_ee)])
 def fire_calendar(
@@ -220,18 +197,16 @@ def fire_calendar(
     lat: float = Query(..., ge=-90, le=90),
     lon: float = Query(..., ge=-180, le=180),
     radius_km: int = Query(150, ge=5, le=300),
-    sensor: str = Query("modis", pattern=SENSOR),
     geom: Optional[str] = GEOM,
 ):
-    first = date.fromisoformat(L.FIRE_DATASETS["modis" if sensor == "harmonized" else sensor]["first"])
+    first = date.fromisoformat(L.FIRE_FIRST)
     if date(year, month, cal.monthrange(year, month)[1]) < first:
-        raise HTTPException(400, f"{sensor.upper()} records start {first.isoformat()}.")
+        raise HTTPException(400, f"Fire records start {first.isoformat()}.")
     if date(year, month, 1) > date.today():
         raise HTTPException(400, "This month is in the future.")
     pts = parse_geom(geom)
-    region = region_of(lat, lon, radius_km, pts)
-    days = _calendar(region, area_key(lat, lon, radius_km, pts), sensor, year, month)
-    return {"sensor": sensor, "year": year, "month": month, "days": days}
+    days = _calendar(region_of(lat, lon, radius_km, pts), area_key(lat, lon, radius_km, pts), year, month)
+    return {"year": year, "month": month, "days": days}
 
 @app.get("/api/insights", dependencies=[Depends(require_ee)])
 def insights(
@@ -240,13 +215,11 @@ def insights(
     lat: float = Query(..., ge=-90, le=90),
     lon: float = Query(..., ge=-180, le=180),
     radius_km: int = Query(150, ge=5, le=300),
-    sensor: str = Query("modis", pattern=SENSOR),
     geom: Optional[str] = GEOM,
     include_burn: bool = Query(True, description="false = skip burned area (fetch it from /api/burned instead)"),
 ):
     check_dates(start, end)
     pts = parse_geom(geom)
-    used = L.resolve_sensor(sensor, end)
 
     def build():
         region = region_of(lat, lon, radius_km, pts)
@@ -255,8 +228,8 @@ def insights(
         jobs = {
             "so2": lambda: L.so2_mean_du(region, start, end),
             "base": lambda: L.so2_mean_du(region, base_start, base_end),
-            "fire": lambda: L.fire_pixel_count(region, start, end, "harmonized" if sensor == "harmonized" else used),
-            "fires": lambda: L.fire_clusters(region, start, end, "harmonized" if sensor == "harmonized" else used),
+            "fire": lambda: L.fire_pixel_count(region, start, end),
+            "fires": lambda: L.fire_clusters(region, start, end),
             "aer": lambda: L.aer_stats(region, start, end),
         }
         if include_burn:
@@ -275,11 +248,11 @@ def insights(
             "fire_sizes": (r.get("fires") or {}).get("sizes"),
             "so2_du": r["so2"], "so2_baseline_du": r["base"],
             "so2_ratio": ratio, "burned_ha": r.get("burn"),
-            "signal": level, "signal_reason": reason, "sensor": sensor, "sensor_used": used,
+            "signal": level, "signal_reason": reason,
             "smoke_index": aer.get("p90"), "smoke_index_mean": aer.get("mean"), "health": card,
         }
 
-    return cached(("ins2", start, end, area_key(lat, lon, radius_km, pts), used, include_burn), build)
+    return cached(("ins3", start, end, area_key(lat, lon, radius_km, pts), include_burn), build)
 
 @app.get("/api/reported")
 def reported(
@@ -323,9 +296,9 @@ def burned(
 def classify(fire, ratio):
     fire = fire or 0
     if fire >= config.ALERT_MIN_FIRE_PIXELS and ratio and ratio >= config.ALERT_SO2_RATIO:
-        return "alert", f"Last 7 days: {fire} fire pixels and sulfur dioxide at {ratio:.1f} times the usual level."
+        return "alert", f"Last 7 days: {fire} fire hotspots and sulfur dioxide at {ratio:.1f} times the usual level."
     if fire >= config.WATCH_FIRE_PIXELS:
-        return "watch", f"Last 7 days: {fire} fire pixels in this area."
+        return "watch", f"Last 7 days: {fire} fire hotspots in this area."
     if ratio and ratio >= config.WATCH_SO2_RATIO:
         return "watch", f"Last 7 days: sulfur dioxide at {ratio:.1f} times the usual level."
     return "none", "Nothing unusual in the last 7 days."
@@ -337,43 +310,33 @@ def hotspots(
     lat: float = Query(..., ge=-90, le=90),
     lon: float = Query(..., ge=-180, le=180),
     radius_km: int = Query(150, ge=5, le=300),
-    sensor: str = Query("modis", pattern=SENSOR),
     confidence: str = Query("all", pattern="^(all|nominal|high)$"),
     geom: Optional[str] = GEOM,
     limit: int = Query(50000, ge=1, le=50000),
 ):
-    """Filtered hotspot records (one row per fire pixel per day) for any range up to a year.
-    The range is fetched in month-sized chunks (Earth Engine returns at most 5,000 rows per request)."""
+    """Fire hotspot records (one row per hotspot per day) for any range up to a year.
+    Fetched in month-sized chunks (Earth Engine returns at most 5,000 rows per request)."""
     check_dates(start, end, max_days=366)
     pts = parse_geom(geom)
     s, e = date.fromisoformat(start), date.fromisoformat(end)
-
     chunks, a = [], s
     while a <= e:
         b = min(e, a + timedelta(days=30))
-        if sensor == "harmonized" and a < L.VIIRS_FIRST <= b:
-            b = L.VIIRS_FIRST - timedelta(days=1)
-        chunks.append((a, b, L.resolve_sensor(sensor, a)))
+        chunks.append((a, b))
         a = b + timedelta(days=1)
 
     def build():
         region = region_of(lat, lon, radius_km, pts)
-
-        def one(c):
-            a_, b_, s_ = c
-            return L.hotspot_records(region, a_.isoformat(), b_.isoformat(), s_, confidence, 5000)
-
         try:
             with ThreadPoolExecutor(max_workers=4) as pool:
-                parts = list(pool.map(one, chunks))
+                parts = list(pool.map(lambda c: L.hotspot_records(region, c[0].isoformat(), c[1].isoformat(), confidence, 5000), chunks))
         except ee.EEException as exc:
             raise HTTPException(502, f"Earth Engine error: {exc}") from exc
         rows = [r for p in parts for r in p]
         truncated = any(len(p) >= 5000 for p in parts) or len(rows) > limit
-        return {"sensor": sensor, "start": start, "end": end, "confidence": confidence,
-                "truncated": truncated, "records": rows[:limit]}
+        return {"start": start, "end": end, "confidence": confidence, "truncated": truncated, "records": rows[:limit]}
 
-    return cached(("hotspots", start, end, area_key(lat, lon, radius_km, pts), sensor, confidence, limit), build)
+    return cached(("hotspots", start, end, area_key(lat, lon, radius_km, pts), confidence, limit), build)
 
 @app.get("/api/monthly_summary", dependencies=[Depends(require_ee)])
 def monthly_summary(
@@ -384,7 +347,7 @@ def monthly_summary(
     months: int = Query(12, ge=1, le=24),
     geom: Optional[str] = GEOM,
 ):
-    """MODIS and VIIRS monthly summaries on one shared schema, for the months up to `end`."""
+    """One summary row per month of fire hotspots, for the months up to `end`."""
     try:
         e = date.fromisoformat(end)
     except ValueError as exc:
@@ -393,7 +356,6 @@ def monthly_summary(
         raise HTTPException(400, "That date is in the future.")
     pts = parse_geom(geom)
     akey = area_key(lat, lon, radius_km, pts)
-
     ym = []
     y, m = e.year, e.month
     for _ in range(months):
@@ -401,78 +363,18 @@ def monthly_summary(
         y, m = (y - 1, 12) if m == 1 else (y, m - 1)
     ym.reverse()
 
-    def one(sensor, y, m):
-        first = date.fromisoformat(L.FIRE_DATASETS[sensor]["first"])
-        if date(y, m, cal.monthrange(y, m)[1]) < first:
-            row = L.summarize_month([], y, m, sensor)
-            row["note"] = f"before {sensor.upper()} record start ({first.isoformat()})"
-            return row
-        res = safe(lambda: _calendar(region_of(lat, lon, radius_km, pts), akey, sensor, y, m))
-        row = L.summarize_month(res or [], y, m, sensor)
+    def one(y, m):
+        res = safe(lambda: _calendar(region_of(lat, lon, radius_km, pts), akey, y, m))
+        row = L.summarize_month(res or [], y, m)
         row["note"] = "" if res is not None else "earth engine request failed"
         return row
 
-    jobs = [(s, y, m) for (y, m) in ym for s in ("modis", "viirs")]
     with ThreadPoolExecutor(max_workers=6) as pool:
-        rows = list(pool.map(lambda j: one(*j), jobs))
+        rows = list(pool.map(lambda j: one(*j), ym))
     area = "drawn polygon" if pts else f"{round(lat, 4)}, {round(lon, 4)} ± {radius_km} km"
     for r in rows:
         r["area"] = area
     return {"months": [f"{y}-{m:02d}" for y, m in ym], "rows": rows}
-
-@app.get("/api/history", dependencies=[Depends(require_ee)])
-def history(
-    lat: float = Query(..., ge=-90, le=90),
-    lon: float = Query(..., ge=-180, le=180),
-    radius_km: int = Query(150, ge=5, le=300),
-    geom: Optional[str] = GEOM,
-    current: Optional[str] = Query(None, pattern=r"^\d{4}-\d{2}$", description="month to compare with its history"),
-):
-    """Harmonised MODIS + VIIRS monthly hotspot record, Nov 2000 → last month with data, plus anomalies."""
-    pts = parse_geom(geom)
-    akey = area_key(lat, lon, radius_km, pts)
-    latest = date.today() - timedelta(days=3)
-
-    def build():
-        region = region_of(lat, lon, radius_km, pts)
-        months = []
-        y, m = 2000, 11
-        while (y, m) <= (latest.year, latest.month):
-            months.append(f"{y}-{m:02d}")
-            y, m = (y + 1, 1) if m == 12 else (y, m + 1)
-
-        jobs = []
-        for sensor in ("modis", "viirs"):
-            first = date.fromisoformat(L.FIRE_DATASETS[sensor]["first"])
-            for year in range(first.year, latest.year + 1):
-                start_m = first.month if year == first.year else 1
-                end_m = latest.month if year == latest.year else 12
-                if year == latest.year and end_m > start_m:
-                    jobs.append((sensor, date(year, start_m, 1), end_m - start_m))
-                    jobs.append((sensor, date(year, end_m, 1), 1))
-                else:
-                    jobs.append((sensor, date(year, start_m, 1), end_m - start_m + 1))
-
-        def run(job):
-            sensor, start, n = job
-            last_m = start.month + n - 1
-            last_day = date(start.year, last_m, cal.monthrange(start.year, last_m)[1])
-            fetch = lambda: L.monthly_counts(region, sensor, start, n)
-            if finished(last_day):
-                return sensor, safe(lambda: disk_cached(f"mc|{sensor}|{start.isoformat()}|{n}|{akey}", fetch)) or {}
-            return sensor, safe(fetch) or {}
-
-        out = {"modis": {}, "viirs": {}}
-        with ThreadPoolExecutor(max_workers=8) as pool:
-            for sensor, part in pool.map(run, jobs):
-                out[sensor].update(part)
-        return months, out
-
-    months, counts = cached(("history", akey), build, ttl=DAY_HISTORY)
-    cur = current or months[-1]
-    res = L.harmonize(months, counts["modis"], counts["viirs"], cur)
-    res["area"] = "drawn polygon" if pts else {"lat": lat, "lon": lon, "radius_km": radius_km}
-    return res
 
 @app.get("/api/so2_series", dependencies=[Depends(require_ee)])
 def so2_series(

@@ -9,8 +9,7 @@ if (typeof maplibregl === "undefined") {
 
 // ---------------------------------------------------------------- constants
 const DAY = 86400000;
-const FIRST = { modis: Date.UTC(2000, 10, 1), viirs: Date.UTC(2012, 0, 19), harmonized: Date.UTC(2000, 10, 1) };
-let MIN_DATE = FIRST.harmonized;
+const MIN_DATE = Date.UTC(2018, 6, 10);            // Sentinel-5P record starts here
 const LATEST = (() => { const n = new Date(); return Date.UTC(n.getUTCFullYear(), n.getUTCMonth(), n.getUTCDate()) - 3 * DAY; })();
 const ORDER = ["so2", "smoke", "burn", "fire"];             // bottom -> top
 const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -26,7 +25,6 @@ const place = (lat, lon) => `${Math.abs(lat).toFixed(2)}°${lat >= 0 ? "N" : "S"
 
 const state = {
   end: LATEST,
-  sensor: (() => { try { const s = JSON.parse(localStorage.getItem("firescout.profile") || "null")?.sensor; return FIRST[s] ? s : "harmonized"; } catch { return "harmonized"; } })(),
   poly: null,
   placeName: "",
   calendarMonth: null,
@@ -75,7 +73,7 @@ const placeLabel = () => !state.pin ? "" : state.placeName || (state.poly ? `Dra
 window.firescout = {
   fmt, iso, DAY, drawSpark: (rows, cv) => drawSpark(rows, cv),
   snapshot: () => ({
-    pin: state.pin, radius: state.radius, end: state.end, sensor: state.sensor,
+    pin: state.pin, radius: state.radius, end: state.end,
     place: placeLabel(),
     ins: state.readout.ins, series: state.readout.series, loading: state.readout.loading,
     poly: state.poly, reported: state.readout.reported,
@@ -91,43 +89,15 @@ function areaParams() {
 // ---------------------------------------------------------------- map
 const map = new maplibregl.Map({
   container: "map",
-  style: "https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json",
+  style: "https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json",
   center: [-100, 28], zoom: innerWidth < 820 ? 0.9 : 1.6,
   attributionControl: { compact: true },
 });
 window.firescoutMap = map;
 map.on("style.load", () => {
   map.setProjection({ type: "globe" });
-  try { map.setSky({ "sky-color": "#06070b", "horizon-color": "#1a2236", "fog-color": "#0b0e16", "atmosphere-blend": ["interpolate", ["linear"], ["zoom"], 0, 1, 5, 1, 7, 0] }); } catch { /* older builds */ }
-  tintBasemap();
+  try { map.setSky({ "sky-color": "#cfe7f1", "horizon-color": "#fff4e6", "fog-color": "#fbf7f1", "atmosphere-blend": ["interpolate", ["linear"], ["zoom"], 0, 1, 5, 1, 7, 0] }); } catch { /* older builds */ }
 });
-
-// a calm night-earth basemap, so fire, smoke and burn colors are the brightest things on screen
-const EARTH = {
-  land: "#141822", green: "#151a23", forest: "#161b24", ice: "#1c2130", sea: "#0a0d14", river: "#121826",
-  building: "#1b2030", road: "#232a3a", border: "#3b4560", label: "#9aa3b8", seaLabel: "#4f5a72", halo: "rgba(8,10,16,.9)",
-};
-function tintBasemap() {
-  const set = (id, prop, val) => { try { map.setPaintProperty(id, prop, val); } catch { /* not every layer has it */ } };
-  for (const l of map.getStyle().layers) {
-    const id = l.id;
-    if (l.type === "background") set(id, "background-color", EARTH.land);
-    else if (l.type === "fill") {
-      if (/water/.test(id)) set(id, "fill-color", EARTH.sea);
-      else if (/glacier|ice|snow/.test(id)) set(id, "fill-color", EARTH.ice);
-      else if (/wood|forest/.test(id)) set(id, "fill-color", EARTH.forest);
-      else if (/park|landcover|grass|nature|reserve|farm/.test(id)) set(id, "fill-color", EARTH.green);
-      else if (/building/.test(id)) set(id, "fill-color", EARTH.building);
-    } else if (l.type === "line") {
-      if (/boundary|admin/.test(id)) set(id, "line-color", EARTH.border);
-      else if (/waterway/.test(id)) set(id, "line-color", EARTH.river);
-      else if (/highway|road|street|tunnel|bridge|motorway|path|rail/.test(id)) set(id, "line-color", EARTH.road);
-    } else if (l.type === "symbol") {
-      const sea = /water|ocean|sea|marine/.test(id);
-      set(id, "text-color", sea ? EARTH.seaLabel : EARTH.label); set(id, "text-halo-color", EARTH.halo);
-    }
-  }
-}
 
 const pinEl = document.createElement("div");
 pinEl.className = "pin"; pinEl.innerHTML = "<span></span>";
@@ -170,7 +140,7 @@ const windowNote = (name) => name === "burn"
   : `7 days to ${fmt(state.end)}`;
 
 function tileParams() {
-  const p = { start: iso(state.end - 6 * DAY), end: iso(state.end), radius_km: state.radius, sensor: state.sensor };
+  const p = { start: iso(state.end - 6 * DAY), end: iso(state.end), radius_km: state.radius };
   if (state.pin) Object.assign(p, areaParams());
   return p;
 }
@@ -231,11 +201,11 @@ async function analyze() {
 
   $("#v-fire").textContent = "…"; setText("#v-fires", "…"); $("#n-fires").textContent = "";
   setText("#v-so2", "…"); $("#n-so2").textContent = ""; $("#v-burn").textContent = "…";
-  setText("#v-smoke", "…"); $("#n-smoke").textContent = ""; $("#health").hidden = true;
+  setText("#v-smoke", "…"); $("#n-smoke").textContent = ""; $("#health").hidden = true; $("#hero").dataset.level = "";
   const sig = $("#signal"); sig.dataset.level = "none"; sig.classList.remove("seen"); sig.textContent = "Reading the satellites…";
   $("#place-sub").textContent = `${state.poly ? "Inside your drawn shape" : `Within ${state.radius} km`} · 7 days to ${fmt(state.end)}`;
 
-  const insP = api("insights", { ...area, end: iso(state.end), sensor: state.sensor, start: iso(state.end - 6 * DAY), include_burn: false });
+  const insP = api("insights", { ...area, end: iso(state.end), start: iso(state.end - 6 * DAY), include_burn: false });
   const serP = api("so2_series", { ...area, end: iso(state.end), days: 30 });
   const burnP = api("burned", { ...area, end: iso(state.end) });
   $("#v-burn").textContent = "Measuring…";
@@ -304,7 +274,6 @@ function renderInsights(r) {
   setText("#v-fires", r.fire_count == null ? "No data" : r.fire_count.toLocaleString());
   $("#n-fires").textContent = !r.fire_count ? "" : `Biggest ≈ ${r.largest_fire_px.toLocaleString()} km²`;
   $("#v-fires").title = "Hotspot pixels that touch, or sit within ~2 km of each other, count as one fire";
-  if (r.sensor_used) $("#v-fire").title = `Read from ${r.sensor_used.toUpperCase()}${r.sensor === "harmonized" ? " (both satellites)" : ""}`;
   setText("#v-so2", r.so2_du == null ? "No data" : `${r.so2_du.toFixed(2)} DU`);
   $("#n-so2").textContent = r.so2_ratio == null ? "" : `${r.so2_ratio.toFixed(1)}× the 30-day normal`;
   if (r.burned_ha !== undefined) $("#v-burn").textContent = r.burned_ha == null ? "No data" : `${Math.round(r.burned_ha).toLocaleString()} ha`;
@@ -322,6 +291,7 @@ function smokeWords(v) {
 // the plain-language smoke and health card (NFTE MetLife Good Health & Well-Being version)
 function renderHealth(h) {
   const box = $("#health");
+  $("#hero").dataset.level = h ? h.level : "";
   if (!h) { box.hidden = true; return; }
   box.dataset.level = h.level;
   $("#health-head").textContent = h.headline;
@@ -370,7 +340,7 @@ function updateTimelineText() {
   slider.value = Math.round((state.end - MIN_DATE) / DAY);
   slider.style.setProperty("--fill", `${(slider.value / slider.max) * 100}%`);
   dateInput.value = iso(state.end);
-  $("#window-note").textContent = `Fires and SO₂: 7 days to ${fmt(state.end)} · Burn scars: 30 days`;
+  $("#window-note").textContent = `smoke, so₂ and fires: 7 days to ${fmt(state.end).toLowerCase()} · burn scars: 30 days`;
 }
 function setDate(ms, { refresh = true } = {}) {
   state.end = clampDate(ms); updateTimelineText();
@@ -386,7 +356,7 @@ $("#next-day").addEventListener("click", () => setDate(state.end + DAY));
 
 function setPlayBtn(playing) {
   const b = $("#play");
-  b.querySelector("span").textContent = playing ? "Pause" : "Play";
+  b.querySelector("span").textContent = playing ? "pause" : "play";
   b.querySelector("path").setAttribute("d", playing ? "M7 5h4v14H7zM13 5h4v14h-4z" : "M8 5v14l11-7z");
   b.classList.toggle("on", playing);
 }
@@ -511,38 +481,6 @@ function goToArea({ lat, lon, radius, poly, name, date }) {
   } else map.flyTo({ center: [lon, lat], zoom: Math.max(5, 9 - Math.log2((radius || state.radius) / 25)), duration: reduceMotion ? 0 : 1800 });
 }
 
-// ---------------------------------------------------------------- fire satellite
-const SENSOR_DETAILS = {
-  harmonized: "MODIS before 2012, VIIRS after, on one scale · 2000 to today.",
-  modis: "MODIS only (Terra + Aqua) · since 2000 · ~1 km pixels.",
-  viirs: "VIIRS only (Suomi NPP + NOAA-20) · since 2012 · sees smaller fires.",
-};
-const SENSOR_CAPTION = { harmonized: "MODIS + VIIRS hotspots", modis: "MODIS hotspots", viirs: "VIIRS fire detections" };
-const SENSOR_NAME = { harmonized: "both satellites", modis: "MODIS", viirs: "VIIRS" };
-function selectSensor(sensor) {
-  if (!FIRST[sensor]) return;
-  state.sensor = sensor;
-  MIN_DATE = FIRST[sensor];
-  configureDateLimits();
-  state.end = clampDate(state.end);
-  $$(".sensor-switch button").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.sensor === sensor)));
-  $("#sensor-detail").textContent = SENSOR_DETAILS[sensor];
-  $("#fire-source-caption").textContent = SENSOR_CAPTION[sensor];
-  const fireRow = $('.layer[data-layer="fire"]');
-  const LEG = { modis: ["linear-gradient(90deg,var(--modis),var(--modis))", "MODIS", ""], viirs: ["linear-gradient(90deg,var(--viirs),var(--viirs))", "", "VIIRS"],
-    harmonized: ["linear-gradient(90deg,var(--modis) 0 40%,var(--both) 40% 60%,var(--viirs) 60% 100%)", "MODIS", "VIIRS · orange = both"] }[sensor];
-  $(".bar", fireRow).style.background = LEG[0]; $(".lo", fireRow).textContent = LEG[1]; $(".hi", fireRow).textContent = LEG[2]; fireRow.dataset.legendSet = "1";
-  try { const p = JSON.parse(localStorage.getItem("firescout.profile") || "{}"); p.sensor = sensor; localStorage.setItem("firescout.profile", JSON.stringify(p)); } catch { /* storage blocked */ }
-  window.dispatchEvent(new CustomEvent("firescout:sensor-changed"));
-  $("#v-fire").textContent = "–";
-  updateTimelineText();
-  loadCalendar();
-  loadLayer("fire");
-  if (state.pin) analyze();
-}
-$$(".sensor-switch button").forEach((b) => b.addEventListener("click", () => selectSensor(b.dataset.sensor)));
-window.addEventListener("firescout:sensor", (e) => selectSensor(e.detail));
-
 // ---------------------------------------------------------------- burn calendar
 function calendarMonthParts() { const d = new Date(state.end); return [d.getUTCFullYear(), d.getUTCMonth() + 1]; }
 function markChosenDay() { $$("#fire-calendar .cal-day").forEach((b) => b.classList.toggle("chosen", b.dataset.date === iso(state.end))); }
@@ -559,41 +497,30 @@ function showCalendar(days, year, month) {
     const shown = hasData ? (Number.isInteger(d.count) ? d.count.toLocaleString() : d.count.toFixed(1)) : "";
     btn.innerHTML = `<span class="d"></span><span class="c"></span>`;
     btn.firstChild.textContent = day; btn.lastChild.textContent = hasData && d.count ? (d.count >= 1000 ? `${(d.count / 1000).toFixed(1)}k` : Math.round(d.count)) : "";
-    const src = d.source ? ` · ${d.source}${d.scaled ? ` × ${d.k.toFixed(2)} (raw ${d.raw})` : ""}` : "";
-    btn.title = `${d.date}: ${hasData ? shown + " fire pixels" + src : "No observation"}`;
+    btn.title = `${d.date}: ${hasData ? shown + " fire hotspots" : "no satellite data"}`;
     btn.setAttribute("aria-label", btn.title);
     btn.classList.toggle("chosen", d.date === iso(state.end));
-    btn.classList.toggle("from-modis", state.sensor === "harmonized" && d.source === "MODIS");
-    btn.disabled = Date.parse(d.date) < FIRST[state.sensor] || Date.parse(d.date) > LATEST;
+    btn.disabled = Date.parse(d.date) > LATEST;
     btn.addEventListener("click", () => setDate(Date.parse(d.date)));
     box.append(btn);
   }
 }
 
-function harmonizeDays(days, month) {
-  if (state.sensor !== "harmonized") return days;
-  const k = window.FireHistory?.k?.(month);
-  return days.map((d) => (d.source === "MODIS" && d.count != null && k
-    ? { ...d, raw: d.count, k, scaled: true, count: Math.round(d.count * k * 10) / 10 } : d));
-}
 let lastCalendar = null;
 function redrawCalendar() {
   if (!lastCalendar) return;
   const { raw, year, month } = lastCalendar;
-  const days = harmonizeDays(raw, month);
+  const days = raw;
   showCalendar(days, year, month);
-  state.calendarDays = { year, month, sensor: state.sensor, days };
+  state.calendarDays = { year, month, days };
   window.dispatchEvent(new CustomEvent("firescout:calendar"));
   const active = days.filter((d) => d.count > 0).length;
   const observed = days.filter((d) => d.count !== null && d.count !== undefined).length;
   const total = days.reduce((s, d) => s + (d.count || 0), 0);
   const peak = days.reduce((p, d) => (d.count || 0) > (p?.count || 0) ? d : p, null);
-  const srcs = [...new Set(days.map((d) => d.source).filter(Boolean))].join(" + ");
-  $("#calendar-note").textContent = `${active} of ${observed} observed days had fire · ${Math.round(total).toLocaleString()} fire pixels`
-    + (peak?.count ? ` · busiest ${fmt(Date.parse(peak.date))}` : "")
-    + (state.sensor === "harmonized" && srcs ? ` · read from ${srcs}` : "");
+  $("#calendar-note").textContent = `${active} of ${observed} days had fire · ${Math.round(total).toLocaleString()} hotspots`
+    + (peak?.count ? ` · busiest ${fmt(Date.parse(peak.date)).toLowerCase()}` : "");
 }
-addEventListener("firescout:history", redrawCalendar);
 async function loadCalendar() {
   const token = ++state.calendarToken;
   const [year, month] = calendarMonthParts();
@@ -605,10 +532,10 @@ async function loadCalendar() {
   showCalendar(empty, year, month); lastCalendar = null;
   $("#fire-calendar").classList.toggle("loading", !!state.pin);
   state.calendarDays = null; window.dispatchEvent(new CustomEvent("firescout:calendar"));
-  if (!state.pin) { $("#calendar-note").textContent = "Pick a place to see the calendar."; return; }
-  $("#calendar-note").textContent = `Loading ${SENSOR_NAME[state.sensor]} daily detections…`;
+  if (!state.pin) { $("#calendar-note").textContent = "pick a place to see the calendar."; return; }
+  $("#calendar-note").textContent = "loading daily fire hotspots…";
   try {
-    const r = await api("fire_calendar", { year, month, sensor: state.sensor, ...areaParams() });
+    const r = await api("fire_calendar", { year, month, ...areaParams() });
     if (token !== state.calendarToken) return;
     lastCalendar = { raw: r.days, year, month };
     redrawCalendar();
@@ -625,9 +552,9 @@ $("#cal-prev").addEventListener("click", () => moveCalendar(-1));
 $("#cal-next").addEventListener("click", () => moveCalendar(1));
 
 const PALETTES = {
-  warm: ["#1d2230", "#4a1f26", "#8c2430", "#e0443a", "#ff9a5c"],
-  cvd:  ["#1d2230", "#3B528B", "#21918C", "#5EC962", "#FDE725"],
-  mono: ["#1d2230", "#4a4f5c", "#7a7f8c", "#b0b4bd", "#f0f1f4"],
+  warm: ["#e9e2d6", "#ffd8a8", "#ffa25e", "#f0502d", "#a8201a"],
+  cvd:  ["#e9e2d6", "#FDE725", "#5EC962", "#21918C", "#3B528B"],
+  mono: ["#e9e2d6", "#c9c9c9", "#969696", "#5e5e5e", "#1f1f1f"],
 };
 const PRINT_PALETTES = {
   warm: ["#F3EFEE", "#F6C9C2", "#EE8A80", "#D8333A", "#8E1022"],
@@ -649,7 +576,7 @@ setPalette((() => { try { return localStorage.getItem("firescout.palette"); } ca
 
 // ---------------------------------------------------------------- boot
 async function boot() {
-  selectSensor(state.sensor);
+  updateTimelineText();
 
   try {
     const meta = await api("meta");
@@ -663,8 +590,8 @@ async function boot() {
 
   await new Promise((r) => (map.loaded() ? r() : map.once("load", r)));
   map.addSource("area", { type: "geojson", data: state.pin ? areaShape() : { type: "FeatureCollection", features: [] } });
-  map.addLayer({ id: "area-fill", type: "fill", source: "area", paint: { "fill-color": "#ff7a45", "fill-opacity": 0.07 } });
-  map.addLayer({ id: "area-line", type: "line", source: "area", paint: { "line-color": "#ffb27a", "line-opacity": .9, "line-width": 1.5, "line-dasharray": [2, 2] } });
+  map.addLayer({ id: "area-fill", type: "fill", source: "area", paint: { "fill-color": "#0f766e", "fill-opacity": 0.07 } });
+  map.addLayer({ id: "area-line", type: "line", source: "area", paint: { "line-color": "#0f766e", "line-opacity": .85, "line-width": 1.6, "line-dasharray": [2, 2] } });
   spin();
 
   const h = await api("health").catch((e) => ({ ok: false, error: e.message }));

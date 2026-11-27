@@ -85,8 +85,8 @@
       const go = button("go", "", `Open ${r.name}`, () => goToArea({ ...r, name: r.name, date: r.date }));
       go.innerHTML = "<b></b><small></small><span class='stats'></span>";
       go.children[0].textContent = r.name;
-      go.children[1].textContent = `${fmtDate(r.date)} · ${r.sensor === "harmonized" ? "MODIS + VIIRS" : r.sensor.toUpperCase()}`;
-      go.children[2].textContent = `🔥 ${num(v.fire_pixels)} px · SO₂ ${v.so2_du == null ? "–" : v.so2_du.toFixed(2)} DU · ${num(v.burned_ha, " ha")} burned`;
+      go.children[1].textContent = `${fmtDate(r.date).toLowerCase()}${v.smoke_level ? ` · ${v.smoke_level.toLowerCase()}` : ""}`;
+      go.children[2].textContent = `🔥 ${num(v.fire_pixels)} hotspots · SO₂ ${v.so2_du == null ? "–" : v.so2_du.toFixed(2)} DU · ${num(v.burned_ha, " ha")} burned`;
       const rm = button("rm", "×", `Delete ${r.name}`, () => { store.readings = store.readings.filter((x) => x.id !== r.id); commit(); });
       li.append(dot, go, rm); rl.append(li);
     });
@@ -114,12 +114,12 @@
     if (!name) return;
     const i = s.ins, rep = s.reported;
     store.readings.unshift({
-      id: String(Date.now()), name, saved_at: new Date().toISOString(), date: iso(s.end), sensor: s.sensor,
+      id: String(Date.now()), name, saved_at: new Date().toISOString(), date: iso(s.end), sensor: "firms",
       lat: s.pin.lat, lon: s.pin.lon, radius: s.radius, poly: s.poly || null,
       values: {
         fire_pixels: i.fire_pixels, fire_count: i.fire_count, largest_fire_px: i.largest_fire_px,
         so2_du: i.so2_du, so2_baseline_du: i.so2_baseline_du, so2_ratio: i.so2_ratio, burned_ha: i.burned_ha,
-        signal: i.signal, signal_reason: i.signal_reason, sensor_used: i.sensor_used,
+        signal: i.signal, signal_reason: i.signal_reason,
         smoke_index: i.smoke_index ?? null, smoke_level: i.health?.headline ?? null,
         reported_count: rep?.count ?? null, reported_acres: rep?.total_acres ?? null,
       },
@@ -129,10 +129,10 @@
   });
 
   q("#watch-check").addEventListener("click", async () => {
-    const btn = q("#watch-check"), s = window.firescout.snapshot(); btn.disabled = true; btn.textContent = "Checking…";
+    const btn = q("#watch-check"), s = window.firescout.snapshot(); btn.disabled = true; btn.textContent = "checking…";
     await Promise.all(store.places.map(async (w) => {
       try {
-        const p = { start: iso(s.end - 6 * DAY), end: iso(s.end), lat: w.lat, lon: w.lon, radius_km: w.radius, sensor: s.sensor, include_burn: false };
+        const p = { start: iso(s.end - 6 * DAY), end: iso(s.end), lat: w.lat, lon: w.lon, radius_km: w.radius, include_burn: false };
         if (w.poly) p.geom = JSON.stringify(w.poly);
         const r = await api("insights", p);
         const h = r.health;
@@ -142,17 +142,17 @@
         else if (!h && r.signal === "alert") toast(`${w.name}: ${r.signal_reason}`);
       } catch (err) { toast(`${w.name}: ${err.message}`); }
     }));
-    render(); btn.disabled = false; btn.textContent = "Check smoke for everyone";
+    render(); btn.disabled = false; btn.textContent = "check smoke for everyone";
   });
 
   // ---------------------------------------------------------------- downloads
   const cell = (v) => { if (v === null || v === undefined) return ""; const s = String(v); return /[",\n\r]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s; };
   function save(name, blob) { const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = name; document.body.append(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 4000); }
   q("#readings-csv").addEventListener("click", () => {
-    const cols = ["name", "date", "sensor", "lat", "lon", "radius_km", "area", "fire_pixels", "fire_count", "largest_fire_km2", "so2_du", "so2_baseline_du", "so2_ratio",
+    const cols = ["name", "date", "lat", "lon", "radius_km", "area", "fire_pixels", "fire_count", "largest_fire_km2", "so2_du", "so2_baseline_du", "so2_ratio",
       "burned_ha", "reported_fires", "reported_acres", "smoke_index", "smoke_level", "signal", "signal_reason", "saved_at"];
     const rows = store.readings.map((r) => { const v = r.values || {}; return {
-      name: r.name, date: r.date, sensor: r.sensor, lat: r.lat.toFixed(4), lon: r.lon.toFixed(4), radius_km: r.poly ? "" : r.radius, area: r.poly ? "drawn polygon" : "circle",
+      name: r.name, date: r.date, lat: r.lat.toFixed(4), lon: r.lon.toFixed(4), radius_km: r.poly ? "" : r.radius, area: r.poly ? "drawn polygon" : "circle",
       fire_pixels: v.fire_pixels, fire_count: v.fire_count, largest_fire_km2: v.largest_fire_px, so2_du: v.so2_du == null ? "" : v.so2_du.toFixed(3),
       so2_baseline_du: v.so2_baseline_du == null ? "" : v.so2_baseline_du.toFixed(3), so2_ratio: v.so2_ratio == null ? "" : v.so2_ratio.toFixed(2),
       burned_ha: v.burned_ha == null ? "" : Math.round(v.burned_ha), reported_fires: v.reported_count, reported_acres: v.reported_acres,

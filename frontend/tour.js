@@ -10,28 +10,20 @@
   const blocks = Object.fromEntries($$(".coach-block", coach).map((b) => [b.dataset.side, b]));
   const title = $("#coach-title"), text = $("#coach-text"), todo = $("#coach-todo"), stepLbl = $("#coach-step");
   const nextBtn = $("#coach-next"), backBtn = $("#coach-back"), dotsBox = $(".coach-dots", coach);
-  const sensorName = () => ($(".sensor-switch button[aria-pressed=true]")?.dataset.sensor || "harmonized");
   const snap = () => window.firescout?.snapshot?.() || {};
   const visible = (el) => el && el.offsetParent !== null;
 
   const STEPS = [
     {
       target: () => $("#place-form"),
-      title: "Find a place",
-      body: () => "Search a town or park, or draw your own area. You can also just click the globe.",
-    },
-    {
-      target: () => $("#rail .sensor-section"),
-      title: "Pick your fire satellite",
-      body: () => sensorName() === "harmonized"
-        ? "You're using both: MODIS before 2012 and VIIRS after, on one scale. Tap MODIS or VIIRS to see just one."
-        : `You're using ${sensorName().toUpperCase()}. “Both” combines MODIS and VIIRS into one 25-year record.`,
+      title: "find a place",
+      body: () => "search a town or park, or draw your own area. you can also just click the globe.",
     },
     {
       target: () => $("#presets"),
-      title: "Try a big wildfire",
-      body: () => "Pick one of these real fires to see everything light up.",
-      todo: "Pick a wildfire to continue",
+      title: "try a real wildfire",
+      body: () => "pick one of these to see smoke, fires and burn scars light up.",
+      todo: "pick a wildfire to continue",
       wait: (done) => {
         $$("#presets button").forEach((b) => {
           const fire = b.dataset.fire === "1";
@@ -45,9 +37,9 @@
     },
     {
       target: () => $("#readout"),
-      title: "Read the numbers",
-      body: () => "Fire pixels, separate fires, sulfur dioxide and burned area inside your circle, for the 7 days up to your date.",
-      todo: "Loading…",
+      title: "your place card",
+      body: () => "the color up top shows the smoke level. below: what to do today, then smoke, sulfur dioxide, fire hotspots and burned area for the last 7 days.",
+      todo: "loading…",
       soft: (ready) => {
         const ok = () => { const s = snap(); return s.pin && !s.loading && (s.ins || s.series?.length); };
         if (ok()) { ready(); return () => {}; }
@@ -58,52 +50,35 @@
       },
     },
     {
-      target: () => $("#reading-save"),
-      title: "Save what you find",
-      body: () => "“Save reading” keeps these numbers. “Add to my people” saves the place (home, school, Grandma's house) so you can check smoke there any day. Both live under Saved.",
+      target: () => $("#readout .actions"),
+      title: "keep what matters",
+      body: () => "“add to my people” saves the place (home, school, grandma's house) so you can check smoke there any day. “save reading” keeps these numbers.",
       pad: 8,
+    },
+    {
+      target: () => $("#layers-section"),
+      title: "flip the layers",
+      body: () => "smoke and sulfur dioxide from sentinel-5p, fire hotspots from nasa firms, burn scars from sentinel-2.",
     },
     {
       target: () => $("#calendar-section"),
-      title: "Burn calendar",
-      body: () => "Every square is one day. Brighter means more fire. Click a day to jump there.",
+      title: "burn calendar",
+      body: () => "every square is one day. hotter colors mean more fire. tap a day to jump there.",
     },
     {
       target: () => $("#passes-section"),
-      title: "Watch satellites pass over",
-      body: () => "See Sentinel-5P, Sentinel-2, MODIS and VIIRS sweep across your place, drawn to scale, with the real times the Sentinels flew over.",
-    },
-    {
-      target: () => $("#history-open"),
-      title: "25 years of fire",
-      body: () => "Every month since 2000, how this month compares, and the long-term trend. Close it to continue.",
-      todo: "Click “Open fire history”",
-      pad: 8,
-      wait: (done) => {
-        const h = $("#history");
-        let opened = false;
-        const mo = new MutationObserver(() => {
-          if (!h.hidden && !opened) opened = true;
-          else if (h.hidden && opened) { mo.disconnect(); done(); }
-        });
-        mo.observe(h, { attributes: true, attributeFilter: ["hidden"] });
-        return () => mo.disconnect();
-      },
+      title: "watch the sentinels pass",
+      body: () => "see sentinel-5p and sentinel-2 sweep across your place, drawn to scale, with the real times they flew over.",
     },
     {
       target: () => $("#timeline"),
-      title: "Travel through time",
-      body: () => "Drag the slider, pick a date, press play, or watch a year of fires as a time-lapse.",
-    },
-    {
-      target: () => $("#export-section"),
-      title: "Download your data",
-      body: () => "Hotspot records, monthly summaries and calendar images for reports.",
+      title: "travel through time",
+      body: () => "pick a date, drag the slider, press play, or watch a whole year of fires.",
     },
     {
       target: null,
-      title: "You're ready",
-      body: () => "Explore your own places. Replay this tour any time with “Tour”.",
+      title: "you're ready ♡",
+      body: () => "explore your own places. replay this tour any time with the ? button.",
       final: true,
     },
   ];
@@ -169,12 +144,12 @@
     i = n; const s = STEPS[i];
     target = s.target ? s.target() : null;
     if (target) reveal(target);
-    stepLbl.textContent = s.final ? "Tour complete" : `Step ${i + 1} of ${STEPS.length - 1}`;
+    stepLbl.textContent = s.final ? "all done" : `step ${i + 1} of ${STEPS.length - 1}`;
     $("#coach-skip").hidden = !!s.final;
     title.textContent = s.title; text.textContent = s.body();
     [...dotsBox.children].forEach((d, k) => d.className = k < i ? "done" : k === i ? "on" : "");
     backBtn.hidden = i === 0 || s.final || !!STEPS[i - 1]?.wait;          
-    nextBtn.querySelector("span").textContent = s.final ? "Start exploring" : "Next";
+    nextBtn.querySelector("span").textContent = s.final ? "start exploring" : "next";
     card.classList.remove("swap"); void card.offsetWidth; card.classList.add("swap");
 
     if (s.wait) {
@@ -212,7 +187,7 @@
   function skip() {
     if (!active) return;
     finish();
-    window.toast?.("Tour skipped. Replay it any time from “Tour”.");
+    window.toast?.("Tour skipped. Replay it any time with the ? button.");
   }
   $("#coach-skip").addEventListener("click", skip);
 

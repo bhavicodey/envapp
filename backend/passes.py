@@ -1,8 +1,6 @@
-"""Real satellite passes over a place, read from the Earth Engine archive.
+"""Real Sentinel-2 and Sentinel-5P passes over a place, read from the Earth Engine archive.
 
-Sentinel-2 and Sentinel-5P images carry the time they were taken, so we can list exactly when each
-satellite last looked at the area. MODIS and VIIRS fire products in Earth Engine are daily composites
-without a time of day, so for those the app shows their fixed overpass schedule instead.
+Their images carry the time they were taken, so we can list exactly when each satellite last looked at the area.
 """
 import logging
 import time

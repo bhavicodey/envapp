@@ -1,6 +1,6 @@
 "use strict";
 
-// Welcome: name → what it's for → which fire satellite. Remembered in this browser.
+// Welcome: name → what it's for. Remembered in this browser.
 (function () {
   const $ = (s, r = document) => r.querySelector(s);
   const $$ = (s, r = document) => [...r.querySelectorAll(s)];
@@ -24,15 +24,15 @@
     embers.append(e);
   }
 
-  const steps = { name: $("#s-name"), why: $("#s-why"), sensor: $("#s-sensor") };
+  const steps = { name: $("#s-name"), why: $("#s-why") };
   function show(name) {
     Object.entries(steps).forEach(([k, el]) => el.classList.toggle("active", k === name));
-    const focus = { name: "#w-name", why: "input[name=why]:checked, input[name=why]", sensor: "input[name=welcome-sensor]:checked" }[name];
+    const focus = { name: "#w-name", why: "input[name=why]:checked, input[name=why]" }[name];
     setTimeout(() => $(focus, steps[name])?.focus({ preventScroll: true }), reduce ? 0 : 320);
   }
 
   function personalize(p) {
-    $("#lede").textContent = p?.name ? `Welcome back, ${p.name}. Search a place or click the globe.` : "Search a place or click the globe.";
+    $("#lede").textContent = p?.name ? `hi ${p.name.toLowerCase()} ♡ search a place or click the globe to see fires, smoke and burn scars.` : "fires, smoke and burn scars from space. search a place or click the globe.";
     const want = p?.why || "";
     $$("#presets button").forEach((b, i) => b.classList.toggle("pick", want ? (b.dataset.for || "").split(" ").includes(want) : i === 0));
   }
@@ -64,29 +64,14 @@
     profile.name = name; $("#w-hello").textContent = name; show("why");
   });
 
-  const otherWrap = $("#w-other-wrap");
-  $$("input[name=why]").forEach((r) => r.addEventListener("change", () => {
-    $("#w-next2").disabled = false;
-    otherWrap.classList.toggle("open", r.value === "other" && r.checked);
-    if (r.value === "other") setTimeout(() => $("#w-other").focus(), 200);
-  }));
+  $$("input[name=why]").forEach((r) => r.addEventListener("change", () => { $("#w-go").disabled = false; }));
   steps.why.addEventListener("submit", (e) => {
     e.preventDefault();
     const pick = $("input[name=why]:checked"); if (!pick) return;
-    profile.why = pick.value; profile.other = pick.value === "other" ? $("#w-other").value.trim() : "";
-    show("sensor");
-  });
-  $("#w-back").addEventListener("click", () => show("name"));
-  $("#w-back2").addEventListener("click", () => show("why"));
-
-  if (profile.sensor) { const input = $(`input[name=welcome-sensor][value="${profile.sensor}"]`); if (input) input.checked = true; }
-  steps.sensor.addEventListener("submit", (e) => {
-    e.preventDefault();
-    profile.sensor = $("input[name=welcome-sensor]:checked").value;
-    profile.done = true; save(profile);
-    window.dispatchEvent(new CustomEvent("firescout:sensor", { detail: profile.sensor }));
+    profile.why = pick.value; profile.done = true; save(profile);
     finish(profile, true);
   });
+  $("#w-back").addEventListener("click", () => show("name"));
 
   $("#help-btn").addEventListener("click", () => window.FireTour?.start());
   window.FireIntro = { reset: () => { try { localStorage.removeItem(KEY); } catch { /* */ } location.reload(); } };

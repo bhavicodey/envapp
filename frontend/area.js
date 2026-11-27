@@ -53,9 +53,9 @@
   function sources() {
     if (map.getSource("draw")) return;
     map.addSource("draw", { type: "geojson", data: { type: "FeatureCollection", features: [] } });
-    map.addLayer({ id: "draw-fill", type: "fill", source: "draw", filter: ["==", "$type", "Polygon"], paint: { "fill-color": "#ffb27a", "fill-opacity": 0.12 } });
-    map.addLayer({ id: "draw-line", type: "line", source: "draw", filter: ["!=", "$type", "Point"], paint: { "line-color": "#ffb27a", "line-width": 2.2, "line-dasharray": [1.5, 1] } });
-    map.addLayer({ id: "draw-pts", type: "circle", source: "draw", filter: ["==", "$type", "Point"], paint: { "circle-radius": 5.5, "circle-color": "#fff", "circle-stroke-color": "#ffb27a", "circle-stroke-width": 2.5 } });
+    map.addLayer({ id: "draw-fill", type: "fill", source: "draw", filter: ["==", "$type", "Polygon"], paint: { "fill-color": "#0f766e", "fill-opacity": 0.12 } });
+    map.addLayer({ id: "draw-line", type: "line", source: "draw", filter: ["!=", "$type", "Point"], paint: { "line-color": "#0f766e", "line-width": 2.2, "line-dasharray": [1.5, 1] } });
+    map.addLayer({ id: "draw-pts", type: "circle", source: "draw", filter: ["==", "$type", "Point"], paint: { "circle-radius": 5.5, "circle-color": "#fff", "circle-stroke-color": "#0f766e", "circle-stroke-width": 2.5 } });
   }
   function paint(cursor) {
     const ring = cursor ? [...pts, cursor] : pts;

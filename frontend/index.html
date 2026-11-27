@@ -4,27 +4,29 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>firescout</title>
-  <meta name="theme-color" content="#0b0d12">
+  <meta name="theme-color" content="#f6f3ee">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🔥%3C/text%3E%3C/svg%3E">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500..800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=DM+Sans:opsz,wght@9..40,400..700&display=swap" rel="stylesheet">
   <link href="https://unpkg.com/maplibre-gl@5.0.0/dist/maplibre-gl.css" rel="stylesheet">
-  <link href="style.css?v=2" rel="stylesheet">
+  <link href="style.css?v=3" rel="stylesheet">
 </head>
 <body>
   <svg width="0" height="0" style="position:absolute" aria-hidden="true">
     <defs>
-      <linearGradient id="flameGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffd27a"/><stop offset=".55" stop-color="#ff6a3d"/><stop offset="1" stop-color="#c2261b"/></linearGradient>
-      <symbol id="i-flame" viewBox="40 6 80 92"><path d="M80 12c10 18 30 28 30 52a30 30 0 0 1-60 0c0-14 8-22 14-32 2 8 6 12 10 14 0-12-2-22 6-34Z" fill="url(#flameGrad)"/><path d="M80 48c6 10 14 14 14 26a14 14 0 0 1-28 0c0-8 6-12 14-26Z" fill="#ffe7b8"/></symbol>
-      <symbol id="i-sat" viewBox="0 0 24 24"><rect x="9.3" y="7.5" width="5.4" height="8" rx="1.2" fill="currentColor"/><g fill="currentColor" fill-opacity=".35" stroke="currentColor" stroke-width="1.2"><rect x="1.2" y="9.4" width="6.4" height="4.2" rx=".5"/><rect x="16.4" y="9.4" width="6.4" height="4.2" rx=".5"/></g><path d="M7.6 11.5h1.7M14.7 11.5h1.7M4.4 9.4v4.2M19.6 9.4v4.2M12 15.5v2.2" stroke="currentColor" stroke-width="1.2"/><path d="M9.6 20a3.3 3.3 0 0 1 4.8 0" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><path d="M12 4.2v3.3" stroke="currentColor" stroke-width="1.2"/><circle cx="12" cy="3.6" r="1" fill="currentColor"/></symbol>
-      <symbol id="i-explore" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="m15.5 8.5-2 5-5 2 2-5z"/></g></symbol>
-      <symbol id="i-cal" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="15" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/><path d="M8 14h2M12 14h2M16 14h.01M8 17h2M12 17h2"/></g></symbol>
-      <symbol id="i-orbit" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.2"/><ellipse cx="12" cy="12" rx="10" ry="4.2" transform="rotate(-25 12 12)"/><circle cx="20.2" cy="8.3" r="1.2" fill="currentColor"/></g></symbol>
+      <linearGradient id="flameGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffb347"/><stop offset=".55" stop-color="#f0502d"/><stop offset="1" stop-color="#b3200d"/></linearGradient>
+      <symbol id="i-flame" viewBox="40 6 80 92"><path d="M80 12c10 18 30 28 30 52a30 30 0 0 1-60 0c0-14 8-22 14-32 2 8 6 12 10 14 0-12-2-22 6-34Z" fill="url(#flameGrad)"/><path d="M80 48c6 10 14 14 14 26a14 14 0 0 1-28 0c0-8 6-12 14-26Z" fill="#ffe2a8"/></symbol>
+      <symbol id="i-sat" viewBox="0 0 24 24"><rect x="9.3" y="7.5" width="5.4" height="8" rx="1.2" fill="currentColor"/><g fill="currentColor" fill-opacity=".3" stroke="currentColor" stroke-width="1.2"><rect x="1.2" y="9.4" width="6.4" height="4.2" rx=".5"/><rect x="16.4" y="9.4" width="6.4" height="4.2" rx=".5"/></g><path d="M7.6 11.5h1.7M14.7 11.5h1.7M4.4 9.4v4.2M19.6 9.4v4.2M12 15.5v2.2" stroke="currentColor" stroke-width="1.2"/><path d="M9.6 20a3.3 3.3 0 0 1 4.8 0" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></symbol>
+      <symbol id="i-layers" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="m12 3 9 5-9 5-9-5z"/><path d="m3 13 9 5 9-5"/></g></symbol>
+      <symbol id="i-cal" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="15" rx="3"/><path d="M3.5 10h17M8 3v4M16 3v4"/></g></symbol>
+      <symbol id="i-orbit" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="3.2"/><ellipse cx="12" cy="12" rx="10" ry="4.2" transform="rotate(-25 12 12)"/></g></symbol>
+      <symbol id="i-heart" viewBox="0 0 24 24"><path d="M12 20s-7.5-4.6-7.5-10A4.3 4.3 0 0 1 12 7.3 4.3 4.3 0 0 1 19.5 10c0 5.4-7.5 10-7.5 10z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></symbol>
       <symbol id="i-down" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11M7 10.5l5 5 5-5M5 20h14"/></g></symbol>
-      <symbol id="i-bookmark" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 3.5h11v17l-5.5-4-5.5 4z"/></g></symbol>
       <symbol id="i-search" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.2-4.2"/></g></symbol>
-      <symbol id="i-draw" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M4 18 8 5l9 3 3 9-9 3z"/><circle cx="4" cy="18" r="1.4" fill="currentColor"/><circle cx="8" cy="5" r="1.4" fill="currentColor"/><circle cx="17" cy="8" r="1.4" fill="currentColor"/><circle cx="20" cy="17" r="1.4" fill="currentColor"/><circle cx="11" cy="20" r="1.4" fill="currentColor"/></g></symbol>
+      <symbol id="i-draw" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M4 18 8 5l9 3 3 9-9 3z"/></g></symbol>
+      <symbol id="i-bookmark" viewBox="0 0 24 24"><path d="M6.5 3.5h11v17l-5.5-4-5.5 4z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></symbol>
+      <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
     </defs>
   </svg>
 
@@ -32,98 +34,83 @@
   <div id="loadbar" aria-hidden="true"></div>
   <div id="setup" role="alert" hidden></div>
 
-  <!-- ============ top: search ============ -->
-  <div id="topbar">
-    <form id="place-form" class="search" autocomplete="off" role="search">
-      <svg class="ico" aria-hidden="true"><use href="#i-search"/></svg>
-      <input id="place-q" type="search" placeholder="Search a town, park or address" aria-label="Search for a place" required>
-      <button type="submit" class="search-go">Go</button>
-    </form>
-    <button id="draw-area" type="button" class="chip-btn draw-btn" title="Draw your own area on the map"><svg class="ico" aria-hidden="true"><use href="#i-draw"/></svg><span>Draw area</span></button>
-    <ul id="place-results" class="place-results" hidden></ul>
-  </div>
+  <!-- ============ app bar ============ -->
+  <header id="appbar">
+    <div class="brand"><svg class="brand-flame" aria-hidden="true"><use href="#i-flame"/></svg><span>firescout</span></div>
+    <div id="topbar">
+      <form id="place-form" class="search" autocomplete="off" role="search">
+        <svg class="ico" aria-hidden="true"><use href="#i-search"/></svg>
+        <input id="place-q" type="search" placeholder="search a town, park or address" aria-label="Search for a place" required>
+        <button type="submit" class="search-go" aria-label="Search">→</button>
+      </form>
+      <button id="draw-area" type="button" class="chip-btn" title="Draw your own area on the map"><svg class="ico" aria-hidden="true"><use href="#i-draw"/></svg><span>draw</span></button>
+      <ul id="place-results" class="place-results" hidden></ul>
+    </div>
+    <nav class="rail-tabs" role="tablist" aria-label="Sections">
+      <button type="button" role="tab" data-tab="explore" aria-selected="true"><svg aria-hidden="true"><use href="#i-layers"/></svg><span>map</span></button>
+      <button type="button" role="tab" data-tab="calendar" aria-selected="false"><svg aria-hidden="true"><use href="#i-cal"/></svg><span>calendar</span></button>
+      <button type="button" role="tab" data-tab="passes" aria-selected="false"><svg aria-hidden="true"><use href="#i-orbit"/></svg><span>satellites</span></button>
+      <button type="button" role="tab" data-tab="saved" aria-selected="false"><svg aria-hidden="true"><use href="#i-heart"/></svg><span>saved</span></button>
+      <button type="button" role="tab" data-tab="export" aria-selected="false"><svg aria-hidden="true"><use href="#i-down"/></svg><span>export</span></button>
+    </nav>
+    <div class="bar-end">
+      <button id="help-btn" class="round-btn" type="button" title="Replay the tour" aria-label="Replay the tour">?</button>
+      <button id="story-btn" class="round-btn" type="button" title="Where firescout came from" aria-label="The story" aria-haspopup="dialog">✦</button>
+    </div>
+  </header>
 
-  <!-- ============ left rail ============ -->
-  <aside id="rail" class="panel" aria-label="Layers, calendar, satellites, export and saved data">
-    <header class="panel-head brand-head">
-      <div class="brand-row">
-        <svg class="brand-flame" aria-hidden="true"><use href="#i-flame"/></svg>
-        <div>
-          <h1>firescout</h1>
-          <p class="lede" id="lede">Fires, smoke and burn scars from space.</p>
-        </div>
-      </div>
-      <button class="panel-toggle" type="button" aria-expanded="true" aria-label="Show or hide the side panel"><span>Menu</span></button>
+  <!-- ============ left drawer ============ -->
+  <aside id="rail" class="panel" aria-label="Map, calendar, satellites, saved and export">
+    <header class="panel-head">
+      <p class="lede" id="lede">fires, smoke and burn scars from space. search a place or click the globe.</p>
+      <button class="panel-toggle" type="button" aria-expanded="true" aria-label="Show or hide the drawer"><span>hide</span></button>
     </header>
 
     <div class="panel-body">
-      <div class="rail-tabs" role="tablist" aria-label="Panel sections">
-        <button type="button" role="tab" data-tab="explore" aria-selected="true"><svg aria-hidden="true"><use href="#i-explore"/></svg><span>Explore</span></button>
-        <button type="button" role="tab" data-tab="calendar" aria-selected="false"><svg aria-hidden="true"><use href="#i-cal"/></svg><span>Calendar</span></button>
-        <button type="button" role="tab" data-tab="passes" aria-selected="false"><svg aria-hidden="true"><use href="#i-orbit"/></svg><span>Passes</span></button>
-        <button type="button" role="tab" data-tab="export" aria-selected="false"><svg aria-hidden="true"><use href="#i-down"/></svg><span>Export</span></button>
-        <button type="button" role="tab" data-tab="saved" aria-selected="false"><svg aria-hidden="true"><use href="#i-bookmark"/></svg><span>Saved</span></button>
-      </div>
-
-      <!-- explore -->
+      <!-- map -->
       <div class="tab-panel" role="tabpanel" data-panel="explore">
-        <section class="sensor-section" aria-labelledby="h-sensor">
-          <h2 id="h-sensor">Fire satellite</h2>
-          <div class="sensor-switch" role="group" aria-label="Active fire satellite source">
-            <button type="button" data-sensor="harmonized" aria-pressed="true">Both</button>
-            <button type="button" data-sensor="modis" aria-pressed="false">MODIS</button>
-            <button type="button" data-sensor="viirs" aria-pressed="false">VIIRS</button>
-          </div>
-          <p id="sensor-detail" class="note">MODIS + VIIRS combined.</p>
-        </section>
-
         <section aria-labelledby="h-places">
-          <h2 id="h-places">Try a place</h2>
+          <h2 id="h-places">try a place</h2>
           <div class="presets" id="presets">
-            <button type="button" data-lat="34.05" data-lon="-118.55" data-date="2025-01-14" data-radius="60" data-zoom="7.2" data-for="school" data-burn="1" data-fire="1"><b>Los Angeles fires</b><small>Jan 2025</small></button>
-            <button type="button" data-lat="50.2" data-lon="-73.5" data-date="2023-06-08" data-radius="250" data-zoom="4.6" data-for="curiosity" data-burn="0" data-fire="1"><b>Quebec smoke</b><small>June 2023</small></button>
-            <button type="button" data-lat="41.0" data-lon="26.1" data-date="2023-08-28" data-radius="80" data-zoom="7" data-for="research" data-burn="1" data-fire="1"><b>Evros wildfire, Greece</b><small>Aug 2023</small></button>
-            <button type="button" data-lat="19.4" data-lon="-155.28" data-date="2025-01-05" data-radius="100" data-zoom="7" data-for="research school" data-burn="0"><b>Kīlauea eruption</b><small>Jan 2025 · volcano, no fire</small></button>
+            <button type="button" data-lat="34.05" data-lon="-118.55" data-date="2025-01-14" data-radius="60" data-zoom="7.2" data-for="school" data-burn="1" data-fire="1"><i>🔥</i><b>los angeles fires</b><small>jan 2025</small></button>
+            <button type="button" data-lat="50.2" data-lon="-73.5" data-date="2023-06-08" data-radius="250" data-zoom="4.6" data-for="curiosity" data-burn="0" data-fire="1"><i>🌫️</i><b>quebec smoke</b><small>june 2023</small></button>
+            <button type="button" data-lat="41.0" data-lon="26.1" data-date="2023-08-28" data-radius="80" data-zoom="7" data-for="research" data-burn="1" data-fire="1"><i>🔥</i><b>evros wildfire</b><small>greece, aug 2023</small></button>
+            <button type="button" data-lat="19.4" data-lon="-155.28" data-date="2025-01-05" data-radius="100" data-zoom="7" data-for="research school" data-burn="0"><i>🌋</i><b>kīlauea eruption</b><small>volcano, no fire</small></button>
           </div>
         </section>
 
         <section aria-labelledby="h-layers" id="layers-section">
-          <h2 id="h-layers">Layers</h2>
-
-          <div class="layer" data-layer="so2">
-            <label class="switch"><input type="checkbox" checked><i aria-hidden="true"></i><span>Sulfur dioxide</span></label>
-            <p class="src">Sentinel-5P, 7-day median</p>
-            <input type="range" class="opacity" min="0" max="1" step="0.05" value="0.7" aria-label="Sulfur dioxide opacity">
-            <div class="legend"><i class="bar"></i><span class="lo"></span><span class="hi"></span></div>
-            <p class="status" role="status"></p>
-          </div>
-
+          <h2 id="h-layers">layers</h2>
           <div class="layer" data-layer="smoke">
-            <label class="switch"><input type="checkbox" checked><i aria-hidden="true"></i><span>Smoke</span></label>
-            <p class="src">Sentinel-5P aerosol index, 7-day median</p>
+            <label class="switch"><input type="checkbox" checked><span class="sw" aria-hidden="true"></span><span class="nm">smoke</span><em class="sat-tag s5p">S5P</em></label>
+            <p class="src">aerosol index, 7-day median</p>
             <input type="range" class="opacity" min="0" max="1" step="0.05" value="0.65" aria-label="Smoke opacity">
             <div class="legend"><i class="bar"></i><span class="lo"></span><span class="hi"></span></div>
             <p class="status" role="status"></p>
           </div>
-
+          <div class="layer" data-layer="so2">
+            <label class="switch"><input type="checkbox" checked><span class="sw" aria-hidden="true"></span><span class="nm">sulfur dioxide</span><em class="sat-tag s5p">S5P</em></label>
+            <p class="src">column density, 7-day median</p>
+            <input type="range" class="opacity" min="0" max="1" step="0.05" value="0.7" aria-label="Sulfur dioxide opacity">
+            <div class="legend"><i class="bar"></i><span class="lo"></span><span class="hi"></span></div>
+            <p class="status" role="status"></p>
+          </div>
           <div class="layer" data-layer="fire">
-            <label class="switch"><input type="checkbox" checked><i aria-hidden="true"></i><span>Active fires</span></label>
-            <p class="src"><span id="fire-source-caption">MODIS + VIIRS hotspots</span>, last 7 days</p>
+            <label class="switch"><input type="checkbox" checked><span class="sw" aria-hidden="true"></span><span class="nm">active fires</span><em class="sat-tag firms">FIRMS</em></label>
+            <p class="src">nasa fire hotspots, last 7 days</p>
             <input type="range" class="opacity" min="0" max="1" step="0.05" value="1" aria-label="Active fires opacity">
             <div class="legend"><i class="bar"></i><span class="lo"></span><span class="hi"></span></div>
             <p class="status" role="status"></p>
           </div>
-
           <div class="layer" data-layer="burn">
-            <label class="switch"><input type="checkbox"><i aria-hidden="true"></i><span>Burn scars</span></label>
-            <p class="src">Sentinel-2 burn severity around your place</p>
+            <label class="switch"><input type="checkbox"><span class="sw" aria-hidden="true"></span><span class="nm">burn scars</span><em class="sat-tag s2">S2</em></label>
+            <p class="src">burn severity (dnbr) around your place</p>
             <input type="range" class="opacity" min="0" max="1" step="0.05" value="0.9" aria-label="Burn scars opacity">
             <div class="legend"><i class="bar"></i><span class="lo"></span><span class="hi"></span></div>
             <p class="status" role="status"></p>
           </div>
-
           <label class="radius">
-            <span>Area radius <b id="radius-val">150 km</b></span>
+            <span>area radius <b id="radius-val">150 km</b></span>
             <input id="radius" type="range" min="25" max="300" step="5" value="150">
           </label>
           <p class="note" id="area-note"></p>
@@ -133,99 +120,94 @@
       <!-- calendar -->
       <div class="tab-panel" role="tabpanel" data-panel="calendar" hidden>
         <section aria-labelledby="h-calendar" id="calendar-section">
-          <h2 id="h-calendar">Burn calendar</h2>
-          <p class="note">Each square is one day of fire detections in your area. Click a day to jump the map there.</p>
-          <div class="calendar-nav"><button id="cal-prev" type="button" class="icon-btn" aria-label="Previous month">‹</button><strong id="cal-title">Month</strong><button id="cal-next" type="button" class="icon-btn" aria-label="Next month">›</button></div>
-          <div class="cal-weekdays" aria-hidden="true"><span>Su</span><span>Mo</span><span>Tu</span><span>We</span><span>Th</span><span>Fr</span><span>Sa</span></div>
+          <h2 id="h-calendar">burn calendar</h2>
+          <p class="note">each day of the month, colored by how many fire hotspots were seen in your area. tap a day to jump there.</p>
+          <div class="calendar-nav"><button id="cal-prev" type="button" class="icon-btn" aria-label="Previous month">‹</button><strong id="cal-title">month</strong><button id="cal-next" type="button" class="icon-btn" aria-label="Next month">›</button></div>
+          <div class="cal-weekdays" aria-hidden="true"><span>s</span><span>m</span><span>t</span><span>w</span><span>t</span><span>f</span><span>s</span></div>
           <div id="fire-calendar" class="fire-calendar" aria-label="Daily fire activity calendar"></div>
-          <div class="cal-legend" aria-hidden="true"><span>Less</span><i style="background:var(--h0)"></i><i style="background:var(--h1)"></i><i style="background:var(--h2)"></i><i style="background:var(--h3)"></i><i style="background:var(--h4)"></i><span>More fire</span></div>
-          <p id="calendar-note" class="note" role="status">Pick a place to see the calendar.</p>
-          <label class="field"><span>Colors</span>
-            <select id="palette" aria-label="Calendar color ramp">
-              <option value="warm">Ember (dark → red)</option>
-              <option value="cvd">Color-blind safe (viridis)</option>
-              <option value="mono">High contrast (greys)</option>
+          <div class="cal-legend" aria-hidden="true"><span>none</span><i style="background:var(--h0)"></i><i style="background:var(--h1)"></i><i style="background:var(--h2)"></i><i style="background:var(--h3)"></i><i style="background:var(--h4)"></i><span>lots</span></div>
+          <p id="calendar-note" class="note" role="status">pick a place to see the calendar.</p>
+          <label class="field"><span>colors</span>
+            <select id="palette" aria-label="Calendar colors">
+              <option value="warm">ember</option>
+              <option value="cvd">color-blind safe</option>
+              <option value="mono">high contrast</option>
             </select>
           </label>
-          <button id="history-open-rail" type="button" class="ghost wide-btn" disabled>Open the 25-year fire history</button>
         </section>
       </div>
 
-      <!-- passes -->
+      <!-- satellites -->
       <div class="tab-panel" role="tabpanel" data-panel="passes" hidden>
         <section aria-labelledby="h-passes" id="passes-section">
-          <h2 id="h-passes">Watch satellites pass over</h2>
-          <p class="note" id="pass-note">Pick a place, then watch each satellite sweep across it. Sentinel times come from the real image archive.</p>
+          <h2 id="h-passes">watch them pass over</h2>
+          <p class="note" id="pass-note">pick a place, then watch each sentinel sweep across it.</p>
           <div class="sat-list" id="sat-list"></div>
-          <button id="pass-all" type="button" class="solid wide-btn" disabled>Watch all four pass</button>
+          <button id="pass-all" type="button" class="solid wide-btn" disabled>watch both pass</button>
+        </section>
+      </div>
+
+      <!-- saved -->
+      <div class="tab-panel" role="tabpanel" data-panel="saved" hidden>
+        <section aria-labelledby="h-watch" id="watch-section">
+          <h2 id="h-watch">my people &amp; places</h2>
+          <p class="note">save the places that matter to you: home, grandma's house, your school, your team's field. then check smoke for all of them at once.</p>
+          <ul id="watchlist" class="saved-list"></ul>
+          <p id="watch-empty" class="empty">nothing here yet. pick a place, then tap “add to my people”.</p>
+          <button id="watch-check" type="button" class="ghost wide-btn" hidden>check smoke for everyone</button>
+        </section>
+        <section aria-labelledby="h-readings" id="readings-section">
+          <h2 id="h-readings">saved readings</h2>
+          <ul id="readings" class="saved-list"></ul>
+          <p id="readings-empty" class="empty">pick a place, then tap “save reading” to keep its numbers.</p>
+          <div class="export-grid">
+            <button id="readings-csv" type="button" class="exp-btn" disabled><b>saved readings</b><small>csv</small></button>
+            <button id="saved-backup" type="button" class="exp-btn"><b>full backup</b><small>json</small></button>
+          </div>
+          <label class="ghost wide-btn file-btn"><input id="saved-import" type="file" accept="application/json,.json" hidden><span>import a backup</span></label>
+          <p id="saved-status" class="sync-note" role="status"></p>
         </section>
       </div>
 
       <!-- export -->
       <div class="tab-panel" role="tabpanel" data-panel="export" hidden>
         <section id="export-section" aria-labelledby="h-export">
-          <h2 id="h-export">Export for reports</h2>
+          <h2 id="h-export">export for reports</h2>
           <div class="range-row">
-            <label><span>From</span><input id="exp-from" type="date" aria-label="Export start date"></label>
-            <label><span>To</span><input id="exp-to" type="date" aria-label="Export end date"></label>
+            <label><span>from</span><input id="exp-from" type="date" aria-label="Export start date"></label>
+            <label><span>to</span><input id="exp-to" type="date" aria-label="Export end date"></label>
           </div>
-          <label class="field"><span>Hotspot confidence</span>
+          <label class="field"><span>hotspot confidence</span>
             <select id="exp-conf" aria-label="Hotspot confidence filter">
-              <option value="all">All detections</option>
-              <option value="nominal">Nominal + high</option>
-              <option value="high">High confidence only</option>
+              <option value="all">all hotspots</option>
+              <option value="nominal">nominal + high</option>
+              <option value="high">high confidence only</option>
             </select>
           </label>
-          <label class="field"><span>Monthly summary covers</span>
+          <label class="field"><span>monthly summary covers</span>
             <select id="exp-months" aria-label="Months in the monthly summary">
-              <option value="6">Last 6 months</option>
-              <option value="12" selected>Last 12 months</option>
-              <option value="24">Last 24 months</option>
+              <option value="6">last 6 months</option>
+              <option value="12" selected>last 12 months</option>
+              <option value="24">last 24 months</option>
             </select>
           </label>
           <div class="export-grid">
-            <button id="exp-hotspots" type="button" class="exp-btn" disabled><b>Hotspot records</b><small>CSV</small></button>
-            <button id="exp-monthly" type="button" class="exp-btn" disabled><b>Monthly summary</b><small>CSV</small></button>
-            <button id="exp-cal-png" type="button" class="exp-btn" disabled><b>Calendar image</b><small>PNG</small></button>
-            <button id="exp-cal-csv" type="button" class="exp-btn" disabled><b>Calendar days</b><small>CSV</small></button>
+            <button id="exp-hotspots" type="button" class="exp-btn" disabled><b>fire hotspots</b><small>csv</small></button>
+            <button id="exp-monthly" type="button" class="exp-btn" disabled><b>monthly summary</b><small>csv</small></button>
+            <button id="exp-cal-png" type="button" class="exp-btn" disabled><b>calendar image</b><small>png</small></button>
+            <button id="exp-cal-csv" type="button" class="exp-btn" disabled><b>calendar days</b><small>csv</small></button>
           </div>
-          <p id="export-note" class="note" role="status">Pick a place first.</p>
+          <p id="export-note" class="note" role="status">pick a place first.</p>
         </section>
-      </div>
-
-      <!-- saved -->
-      <div class="tab-panel" role="tabpanel" data-panel="saved" hidden>
-        <section aria-labelledby="h-readings" id="readings-section">
-          <h2 id="h-readings">Saved readings</h2>
-          <ul id="readings" class="saved-list"></ul>
-          <p id="readings-empty" class="note">Pick a place, then press “Save reading” to keep its numbers.</p>
-          <div class="export-grid two">
-            <button id="readings-csv" type="button" class="exp-btn" disabled><b>Saved readings</b><small>CSV</small></button>
-            <button id="saved-backup" type="button" class="exp-btn"><b>Full backup</b><small>JSON</small></button>
-          </div>
-          <label class="ghost wide-btn file-btn"><input id="saved-import" type="file" accept="application/json,.json" hidden><span>Import a backup</span></label>
-        </section>
-
-        <section aria-labelledby="h-watch" id="watch-section">
-          <h2 id="h-watch">My people &amp; places</h2>
-          <p class="note">Save the places that matter to you: home, Grandma's house, your school, your team's field. Then check smoke for all of them at once.</p>
-          <ul id="watchlist" class="saved-list"></ul>
-          <p id="watch-empty" class="note">Pick a place, then choose “Add to my people”.</p>
-          <button id="watch-check" type="button" class="ghost wide-btn" hidden>Check smoke for everyone</button>
-        </section>
-        <p id="saved-status" class="sync-note" role="status"></p>
-
         <details class="how" id="how">
-          <summary>How the data is made</summary>
+          <summary>how the data is made</summary>
           <ol>
-            <li><b>Sulfur dioxide</b> comes from Sentinel-5P. Cloudy pixels are removed, 7 days are combined into a median, and the readout compares it with the area's own 30-day normal.</li>
-            <li><b>Smoke</b> is the Sentinel-5P Absorbing Aerosol Index, 7-day median. Around 0 is clean air, above 1 is a clear layer of smoke or dust, above 2 is a thick plume. The health card uses the 90th percentile over your area, so a plume over part of it still counts.</li>
-            <li><b>Active fires</b> are NASA hotspots about 1 km wide: MODIS since 2000 and VIIRS since 2012. “Both” uses VIIRS from 2012 on and MODIS × k before that, so all 25 years are on one scale.</li>
-            <li><b>Burn scars</b> compare Sentinel-2 near- and shortwave-infrared light before and after. A big drop (dNBR above 0.27) on land that was green counts as burned.</li>
-            <li><b>Reported fires</b> are US fire agency incidents (NIFC), from 2014 on.</li>
+            <li><b>smoke</b> is the sentinel-5p absorbing aerosol index, 7-day median. around 0 is clean air, above 1 is a clear layer of smoke or dust, above 2 is a thick plume. the health card uses the 90th percentile over your area, so a plume over part of it still counts.</li>
+            <li><b>sulfur dioxide</b> also comes from sentinel-5p. cloudy pixels are removed, 7 days are combined into a median, and the readout compares it with the area's own 30-day normal.</li>
+            <li><b>active fires</b> are nasa firms thermal hotspots, about 1 km wide. the readout counts them in your area and groups touching ones into separate fires.</li>
+            <li><b>burn scars</b> compare sentinel-2 near- and shortwave-infrared light before and now. a big drop (dnbr above 0.27) on land that was green counts as burned.</li>
           </ol>
-          <p class="how-foot"><b>Alert</b> = fire plus sulfur dioxide at 1.5× normal or more. <b>Watch</b> = 10+ fire pixels, or sulfur dioxide at 2× normal. Showing up together doesn't mean one caused the other.</p>
-          <p class="how-foot"><b>Smoke levels:</b> clear, fire nearby (fires but little smoke), some smoke (index 1+), heavy smoke (index 2+). Lots of fire nearby bumps the level up a step. Health steps follow EPA AirNow and CDC wildfire smoke advice. This is a satellite estimate, not an air-quality reading or a warning system.</p>
+          <p class="how-foot">health steps follow epa airnow and cdc wildfire smoke advice. this is a satellite estimate, not an air-quality reading or a warning system.</p>
         </details>
       </div>
     </div>
@@ -233,144 +215,116 @@
 
   <!-- ============ map tools ============ -->
   <div id="nav" role="toolbar" aria-label="Map navigation">
-    <button id="zoom-in" type="button" aria-label="Zoom in" data-tip="Zoom in"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button>
-    <button id="zoom-out" type="button" aria-label="Zoom out" data-tip="Zoom out"><svg viewBox="0 0 24 24"><path d="M5 12h14"/></svg></button>
-    <i class="sep"></i>
-    <button id="compass" type="button" aria-label="Point north" data-tip="Point north"><svg viewBox="0 0 24 24"><path d="M12 3l4 9h-8z" fill="currentColor"/><path d="M8 12l4 9 4-9" opacity=".45"/></svg></button>
-    <button id="home" type="button" aria-label="Reset the view" data-tip="Reset view"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18"/></svg></button>
-    <button id="spin" type="button" aria-label="Spin the globe" aria-pressed="false" data-tip="Spin globe"><svg viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-2.5-5.8"/><path d="M20 4v5h-5"/></svg></button>
-    <button id="proj" type="button" aria-label="Switch to flat map" data-tip="Flat map"><svg viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="12" rx="2"/><path d="M3 12h18M9 6v12M15 6v12"/></svg></button>
+    <button id="zoom-in" type="button" aria-label="Zoom in" data-tip="zoom in"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button>
+    <button id="zoom-out" type="button" aria-label="Zoom out" data-tip="zoom out"><svg viewBox="0 0 24 24"><path d="M5 12h14"/></svg></button>
+    <button id="compass" type="button" aria-label="Point north" data-tip="north"><svg viewBox="0 0 24 24"><path d="M12 3l4 9h-8z" fill="currentColor"/><path d="M8 12l4 9 4-9" opacity=".45"/></svg></button>
+    <button id="home" type="button" aria-label="Reset the view" data-tip="reset"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18"/></svg></button>
+    <button id="spin" type="button" aria-label="Spin the globe" aria-pressed="false" data-tip="spin"><svg viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-2.5-5.8"/><path d="M20 4v5h-5"/></svg></button>
+    <button id="proj" type="button" aria-label="Switch to flat map" data-tip="flat map"><svg viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="12" rx="2"/><path d="M3 12h18M9 6v12M15 6v12"/></svg></button>
   </div>
 
-  <div id="draw-bar" hidden><span id="draw-msg">Click the map to add corners (need 3+)</span><button id="draw-undo" type="button">Undo</button><button id="draw-cancel" type="button">Cancel</button></div>
-  <p id="hint"><b>Drag</b> to turn · <b>Scroll</b> to zoom · <b>Click</b> to pick a place</p>
+  <div id="draw-bar" hidden><span id="draw-msg">click the map to add corners (need 3+)</span><button id="draw-undo" type="button">undo</button><button id="draw-cancel" type="button">cancel</button></div>
+  <p id="hint">drag to turn · scroll to zoom · <b>click to pick a place</b></p>
 
-  <!-- ============ right: readout ============ -->
-  <aside id="readout" class="panel" aria-label="Area readout">
-    <header class="panel-head">
-      <div class="place-head">
-        <p class="eyebrow">Your area</p>
-        <h2 id="place">No place chosen</h2>
-        <p class="note" id="place-sub">Click the map, search, or try a place.</p>
-      </div>
-      <button class="panel-toggle" type="button" aria-expanded="true" aria-label="Show or hide the readout"><span>Readout</span></button>
-    </header>
+  <!-- ============ place card ============ -->
+  <aside id="readout" class="panel" aria-label="Your place">
+    <div class="hero" id="hero" data-level="">
+      <header class="panel-head">
+        <div class="place-head">
+          <p class="eyebrow">your place</p>
+          <h2 id="place">no place yet</h2>
+          <p class="note" id="place-sub">click the globe, search, or try a place.</p>
+        </div>
+        <button class="panel-toggle" type="button" aria-expanded="true" aria-label="Show or hide your place"><span>hide</span></button>
+      </header>
+    </div>
 
     <div class="panel-body">
-      <p id="signal" data-level="none">No place yet.</p>
+      <p id="signal" data-level="none">no place yet.</p>
 
       <section id="health" class="health" data-level="" hidden aria-live="polite" aria-labelledby="health-head">
-        <p class="health-eyebrow">Smoke &amp; your health</p>
+        <p class="health-eyebrow">smoke &amp; your health</p>
         <h3 id="health-head">–</h3>
         <p id="health-summary" class="health-summary"></p>
         <p id="health-who" class="health-who"></p>
-        <p class="health-today">What to do today</p>
+        <p class="health-today">what to do today</p>
         <ul id="health-steps"></ul>
-        <p class="health-limits"><span id="health-limits"></span> <a href="https://www.airnow.gov/" target="_blank" rel="noopener">Check AirNow.gov</a></p>
+        <p class="health-limits"><span id="health-limits"></span> <a href="https://www.airnow.gov/" target="_blank" rel="noopener">check airnow.gov</a></p>
         <p id="health-source" class="health-source"></p>
       </section>
 
       <dl class="rows">
-        <div class="metric" data-layer="fire"><dt>Fire pixels</dt><dd id="v-fire">–</dd></div>
-        <div class="metric" data-layer="fire"><dt>Separate fires</dt><dd id="v-fires">–<small id="n-fires"></small></dd></div>
-        <div class="metric" data-layer="smoke"><dt>Smoke index</dt><dd id="v-smoke">–<small id="n-smoke"></small></dd></div>
-        <div class="metric" data-layer="so2"><dt>Sulfur dioxide</dt><dd id="v-so2">–<small id="n-so2"></small></dd></div>
-        <div class="metric" data-layer="burn"><dt>Burned area</dt><dd id="v-burn">–</dd></div>
-        <div class="metric wide" data-layer="reported"><dt>Reported by fire agencies</dt><dd id="v-reported">–<small id="n-reported"></small></dd></div>
+        <div class="metric" data-layer="smoke"><dt>smoke index</dt><dd id="v-smoke">–<small id="n-smoke"></small></dd></div>
+        <div class="metric" data-layer="so2"><dt>sulfur dioxide</dt><dd id="v-so2">–<small id="n-so2"></small></dd></div>
+        <div class="metric" data-layer="fire"><dt>fire hotspots</dt><dd id="v-fire">–</dd></div>
+        <div class="metric" data-layer="fire"><dt>separate fires</dt><dd id="v-fires">–<small id="n-fires"></small></dd></div>
+        <div class="metric" data-layer="burn"><dt>burned area</dt><dd id="v-burn">–</dd></div>
+        <div class="metric" data-layer="reported"><dt>reported fires</dt><dd id="v-reported">–<small id="n-reported"></small></dd></div>
       </dl>
 
-      <div id="anomaly" class="anomaly" hidden>
-        <p class="anom-label">This month vs its history</p>
-        <p class="anom-big" id="anom-big">–</p>
-        <p class="anom-sub" id="anom-sub"></p>
-      </div>
-
       <figure class="spark">
-        <canvas id="spark" height="72"></canvas>
-        <figcaption id="spark-cap">Daily sulfur dioxide, Dobson units</figcaption>
+        <figcaption id="spark-cap">daily sulfur dioxide, dobson units</figcaption>
+        <canvas id="spark" height="64"></canvas>
       </figure>
 
       <div class="actions">
-        <button id="history-open" type="button" class="solid wide-btn" disabled>Open fire history</button>
-        <div class="action-row">
-          <button id="reading-save" type="button" class="ghost" disabled><svg class="ico" aria-hidden="true"><use href="#i-bookmark"/></svg>Save reading</button>
-          <button id="watch-add" type="button" class="ghost" disabled title="Save this place to My people &amp; places">Add to my people</button>
-        </div>
+        <button id="watch-add" type="button" class="solid" disabled title="Save this place to my people &amp; places"><svg class="ico" aria-hidden="true"><use href="#i-plus"/></svg>add to my people</button>
+        <button id="reading-save" type="button" class="ghost" disabled><svg class="ico" aria-hidden="true"><use href="#i-bookmark"/></svg>save reading</button>
       </div>
     </div>
   </aside>
 
-  <!-- ============ overlays on the map ============ -->
+  <!-- ============ floating cards ============ -->
   <div id="tl-hud" class="hud" hidden data-state="loading" role="status">
-    <div class="tl-top"><b id="tl-date">Loading…</b><button id="tl-stop" type="button" aria-label="Close the time-lapse">×</button></div>
-    <div class="tl-counts"><span><i style="background:var(--modis)"></i><b id="tl-n-modis">0</b> MODIS</span><span><i style="background:var(--viirs)"></i><b id="tl-n-viirs">0</b> VIIRS</span></div>
+    <div class="tl-top"><b id="tl-date">loading…</b><button id="tl-stop" type="button" aria-label="Close the time-lapse">×</button></div>
+    <div class="tl-counts"><span><i></i><b id="tl-n">0</b> fire hotspots so far</span></div>
     <div class="tl-track"><i id="tl-bar"></i></div>
   </div>
 
   <div id="pass-hud" class="hud" hidden role="status">
-    <div class="tl-top"><b id="pass-hud-title">Satellite pass</b><button id="pass-stop" type="button" aria-label="Stop the pass">×</button></div>
+    <div class="tl-top"><b id="pass-hud-title">satellite pass</b><button id="pass-stop" type="button" aria-label="Stop the pass">×</button></div>
     <ul id="pass-hud-list"></ul>
     <div class="tl-track"><i id="pass-bar"></i></div>
   </div>
 
-  <!-- ============ bottom: timeline ============ -->
+  <!-- ============ date dock ============ -->
   <nav id="timeline" class="panel" aria-label="Date">
-    <div class="tl-left">
-      <button id="play" type="button" aria-label="Play through time"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z" fill="currentColor"/></svg><span>Play</span></button>
-      <button id="tl-btn" type="button" class="ghost" title="Watch the last year of fires near your place" disabled>Time-lapse</button>
-    </div>
+    <button id="play" type="button" aria-label="Play through time"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z" fill="currentColor"/></svg><span>play</span></button>
+    <div id="datebox"><button id="prev-day" class="step-btn" type="button" aria-label="One day earlier">‹</button><input id="date" type="date" aria-label="Choose a date"><button id="next-day" class="step-btn" type="button" aria-label="One day later">›</button></div>
     <div class="tl-mid">
       <input id="slider" type="range" min="0" max="1" step="1" value="1" aria-label="Date slider">
       <p id="window-note"></p>
     </div>
-    <div id="datebox"><button id="prev-day" class="step-btn" type="button" aria-label="One day earlier" title="One day earlier">‹</button><input id="date" type="date" aria-label="Choose a date"><button id="next-day" class="step-btn" type="button" aria-label="One day later" title="One day later">›</button></div>
+    <button id="tl-btn" type="button" class="ghost" title="Watch the last year of fires near your place" disabled>year time-lapse</button>
   </nav>
 
-  <div id="fabs">
-    <button id="help-btn" class="fab" type="button" title="Replay the guided tour"><b>?</b><span>Tour</span></button>
-    <button id="story-btn" class="fab" type="button" aria-haspopup="dialog" title="Where firescout came from"><b>✦</b><span>Story</span></button>
-  </div>
-
-  <!-- ============ intro ============ -->
+  <!-- ============ welcome ============ -->
   <div id="intro" role="dialog" aria-modal="true" aria-label="Welcome to firescout">
-    <div class="glow g1"></div><div class="glow g2"></div>
+    <div class="blob b1"></div><div class="blob b2"></div><div class="blob b3"></div>
     <div id="embers" aria-hidden="true"></div>
     <div class="stage">
       <svg class="logo-flame" aria-hidden="true"><use href="#i-flame"/></svg>
-      <p class="brand">firescout</p>
-      <p class="hero-tag">Fires, smoke and burn scars from space, 2000 to today</p>
+      <p class="brand-big">firescout</p>
+      <p class="hero-tag">fires, smoke and burn scars, seen from space</p>
 
       <form id="s-name" class="step card" autocomplete="off">
-        <p class="step-count">1 of 3</p>
-        <h2 class="q">Hi! What's your name?</h2>
-        <input id="w-name" type="text" maxlength="30" autocomplete="given-name" placeholder="Type it here" aria-label="Your name">
-        <button class="cta" type="submit"><span>Next</span> <i>→</i></button>
+        <p class="step-count">1 / 2</p>
+        <h2 class="q">hi! what's your name?</h2>
+        <input id="w-name" type="text" maxlength="30" autocomplete="given-name" placeholder="type it here" aria-label="Your name">
+        <button class="cta" type="submit"><span>next</span> <i>→</i></button>
       </form>
 
       <form id="s-why" class="step card" autocomplete="off">
-        <p class="step-count">2 of 3</p>
-        <h2 class="q">Hi <span id="w-hello" class="name"></span>, what are you using firescout for?</h2>
+        <p class="step-count">2 / 2</p>
+        <h2 class="q">hi <span id="w-hello" class="name"></span>, what are you using firescout for?</h2>
         <div class="opts" role="radiogroup" aria-label="What are you using firescout for">
-          <label class="opt"><input type="radio" name="why" value="school"><span>School project</span></label>
-          <label class="opt"><input type="radio" name="why" value="research"><span>Research paper</span></label>
-          <label class="opt"><input type="radio" name="why" value="curiosity"><span>Curiosity</span></label>
-          <label class="opt"><input type="radio" name="why" value="other"><span>Other</span></label>
+          <label class="opt"><input type="radio" name="why" value="school"><span>📚 school project</span></label>
+          <label class="opt"><input type="radio" name="why" value="research"><span>🔬 research paper</span></label>
+          <label class="opt"><input type="radio" name="why" value="health"><span>💚 my family's health</span></label>
+          <label class="opt"><input type="radio" name="why" value="curiosity"><span>✨ curiosity</span></label>
         </div>
-        <div class="other" id="w-other-wrap"><div><input id="w-other" type="text" maxlength="60" placeholder="Tell me in a few words" aria-label="Other purpose"></div></div>
-        <button class="cta" type="submit" id="w-next2" disabled><span>Next</span> <i>→</i></button>
-        <button class="back" type="button" id="w-back">← Back</button>
-      </form>
-
-      <form id="s-sensor" class="step card" autocomplete="off">
-        <p class="step-count">3 of 3</p>
-        <h2 class="q">Which fire satellite?</h2>
-        <div class="sensor-choices" role="radiogroup" aria-label="Choose fire satellite">
-          <label class="sensor-choice"><input type="radio" name="welcome-sensor" value="harmonized" checked><span><strong>Both, combined <em>Recommended</em></strong><small>MODIS + VIIRS on one scale, 2000 to today</small></span></label>
-          <label class="sensor-choice"><input type="radio" name="welcome-sensor" value="modis"><span><strong>MODIS</strong><small>Terra and Aqua, since 2000 · best for long trends</small></span></label>
-          <label class="sensor-choice"><input type="radio" name="welcome-sensor" value="viirs"><span><strong>VIIRS</strong><small>Suomi NPP and NOAA-20, since 2012 · sees smaller fires</small></span></label>
-        </div>
-        <button class="cta" type="submit" id="w-go"><span>Let's go</span> <i>→</i></button>
-        <button class="back" type="button" id="w-back2">← Back</button>
+        <button class="cta" type="submit" id="w-go" disabled><span>let's go</span> <i>→</i></button>
+        <button class="back" type="button" id="w-back">← back</button>
       </form>
     </div>
   </div>
@@ -383,85 +337,25 @@
     <div class="coach-block" data-side="right"></div>
     <div class="coach-hole" aria-hidden="true"></div>
     <div class="coach-card" role="dialog" aria-modal="false" aria-labelledby="coach-title" tabindex="-1">
-      <div class="coach-top"><p class="eyebrow" id="coach-step">Step 1</p><div class="coach-dots" aria-hidden="true"></div><button type="button" class="coach-skip" id="coach-skip" title="Skip the guided tour (Esc)">Skip</button></div>
-      <h2 id="coach-title">Title</h2>
+      <div class="coach-top"><p class="eyebrow" id="coach-step">step 1</p><div class="coach-dots" aria-hidden="true"></div><button type="button" class="coach-skip" id="coach-skip" title="Skip the tour (Esc)">skip</button></div>
+      <h2 id="coach-title">title</h2>
       <p id="coach-text"></p>
       <p id="coach-todo" class="coach-todo" hidden></p>
       <div class="coach-actions">
-        <button type="button" class="back" id="coach-back">← Back</button>
-        <button type="button" class="cta" id="coach-next"><span>Next</span> <i>→</i></button>
+        <button type="button" class="back" id="coach-back">← back</button>
+        <button type="button" class="cta" id="coach-next"><span>next</span> <i>→</i></button>
       </div>
     </div>
   </div>
 
-  <!-- ============ fire history ============ -->
-  <div id="history" class="modal" role="dialog" aria-modal="true" aria-labelledby="h-title" hidden>
-    <div class="card history-card">
-      <button class="x" type="button" id="history-x" aria-label="Close">×</button>
-      <p class="eyebrow">Fire history</p>
-      <h2 id="h-title">Your area since 2000</h2>
-      <p class="note" id="h-sub"></p>
-      <p id="h-loading" class="h-loading" role="status">Loading… this can take a minute.</p>
-
-      <div id="h-body" hidden>
-        <div class="h-tiles" id="h-tiles"></div>
-
-        <div class="h-block">
-          <div class="h-block-head">
-            <h3>Burn calendar, month by month</h3>
-            <div class="h-controls">
-              <label><span>Years</span><select id="h-from"></select></label><span class="h-dash">→</span><label><select id="h-to"></select></label>
-              <label><span>Show</span>
-                <select id="h-view">
-                  <option value="count">Hotspot counts</option>
-                  <option value="anomaly">Vs past years (percentile)</option>
-                </select>
-              </label>
-            </div>
-          </div>
-          <div id="h-grid" class="h-grid" aria-label="Years by months hotspot calendar"></div>
-          <div class="h-legend" id="h-legend"></div>
-          <p class="note">Each box is a month. Brighter means more fire. Click a month to jump the map there.</p>
-        </div>
-
-        <div class="h-two">
-          <div class="h-block">
-            <h3>Seasonal pattern</h3>
-            <div id="h-season" class="h-chart"></div>
-            <p class="note">Bright line: <span id="h-season-year">this year</span>. Pale line and band: a typical year.</p>
-          </div>
-          <div class="h-block">
-            <h3>Hotspots per year</h3>
-            <div id="h-annual" class="h-chart"></div>
-            <p class="note" id="h-annual-note">Dashed line: trend.</p>
-          </div>
-        </div>
-
-        <details class="h-block h-method" id="h-method">
-          <summary>How MODIS and VIIRS were combined</summary>
-          <div class="h-two">
-            <div id="h-scatter" class="h-chart"></div>
-            <div id="h-method-text" class="h-method-text"></div>
-          </div>
-        </details>
-
-        <div class="h-downloads">
-          <button id="h-csv" type="button" class="exp-btn"><b>Monthly record</b><small>CSV</small></button>
-          <button id="h-png" type="button" class="exp-btn"><b>History calendar</b><small>PNG</small></button>
-          <button id="h-annual-csv" type="button" class="exp-btn"><b>Yearly totals + trend</b><small>CSV</small></button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- ============ name-a-place ============ -->
+  <!-- ============ name popup ============ -->
   <div id="namer" class="modal" role="dialog" aria-modal="true" aria-labelledby="n-title" hidden>
     <form class="card small" id="namer-form" autocomplete="off">
-      <h2 id="n-title">Name this place</h2>
+      <h2 id="n-title">name this place</h2>
       <input id="namer-input" type="text" maxlength="60" aria-label="Name">
       <div class="row">
-        <button class="cta" type="submit"><span>Save</span></button>
-        <button class="back" type="button" id="namer-cancel">Cancel</button>
+        <button class="cta" type="submit"><span>save</span></button>
+        <button class="back" type="button" id="namer-cancel">cancel</button>
       </div>
     </form>
   </div>
@@ -470,45 +364,41 @@
   <div id="story" class="modal" role="dialog" aria-modal="true" aria-labelledby="i-title" hidden>
     <div class="card wide">
       <button class="x" type="button" id="story-x" aria-label="Close">×</button>
-      <p class="eyebrow">The story</p>
-      <h2 id="i-title">Where firescout came from</h2>
+      <p class="eyebrow">the story</p>
+      <h2 id="i-title">where firescout came from</h2>
       <!-- EDIT ME: add more of your own story here -->
-      <p>Hi, I'm Bhavishaya Vignesh. I used to live in Canada, and I lived through the wildfires in Alberta and British Columbia. The smoke changed the sky and the air we breathed, and it was hard on my family. I wanted to understand what was in that air and how to see it coming, and satellites turned out to see it first. I built firescout because if the data is already up there, it should feel as friendly as opening a map.</p>
+      <p>hi, i'm bhavishaya vignesh. i used to live in canada, and i lived through the wildfires in alberta and british columbia. the smoke changed the sky and the air we breathed, and it was hard on my family. i wanted to understand what was in that air and how to see it coming, and satellites turned out to see it first. i built firescout because if the data is already up there, it should feel as friendly as opening a map.</p>
       <div class="award">
         <b class="medal" aria-hidden="true">★</b>
         <div>
-          <strong>Tri-Valley Air Quality Award</strong>
-          <p>I won the Tri-Valley Air Quality Award for this project and the research behind it on Sulfur Scout and wildfires. firescout is where that research became something anyone can open and explore.</p>
+          <strong>tri-valley air quality award</strong>
+          <p>i won the tri-valley air quality award for this project and the research behind it on sulfur scout and wildfires. firescout is where that research became something anyone can open and explore.</p>
         </div>
       </div>
       <!-- EDIT ME: add the year, the awarding organization's full name, or a quote from the judges here -->
-      <h3>The research behind it</h3>
-      <p>My research started with a simple question: can satellite data show how wildfires and sulfur dioxide are connected to the air people breathe? I studied sulfur dioxide with Sulfur Scout, studied wildfires through fire hotspots and burn scars, and then put both on one globe so I can compare them for the same place and the same dates.</p>
-      <h3>What firescout does</h3>
-      <ul class="about-list">
-        <li>MODIS and VIIRS fire hotspots combined into one 25-year record</li>
-        <li>A daily burn calendar and a month-by-month history since 2000</li>
-        <li>Sulfur dioxide from Sentinel-5P and burn scars from Sentinel-2</li>
-        <li>Watch Sentinel-5P, Sentinel-2, MODIS and VIIRS pass over any place</li>
-        <li>Save readings and places, and download everything as CSV or images</li>
-      </ul>
-      <h3>Data</h3>
-      <p class="note">NASA FIRMS (MODIS), NASA VIIRS VNP14A1, Copernicus Sentinel-5P and Sentinel-2, all through Google Earth Engine. US fire incidents from NIFC. Place search by OpenStreetMap Nominatim. Map by CARTO and OpenStreetMap.</p>
+      <h3>the research behind it</h3>
+      <p>my research started with a simple question: can satellite data show how wildfires and sulfur dioxide are connected to the air people breathe? i studied sulfur dioxide with sulfur scout, studied wildfires through fire hotspots and burn scars, and then put them on one globe so i can compare them for the same place and the same dates.</p>
+      <h3>the satellites</h3>
+      <div class="sat-row">
+        <div class="sat-mini s5p"><b>sentinel-5p</b><span>smoke and sulfur dioxide, every day</span></div>
+        <div class="sat-mini s2"><b>sentinel-2</b><span>burn scars, 10–20 m detail</span></div>
+        <div class="sat-mini firms"><b>nasa firms</b><span>active fire hotspots</span></div>
+      </div>
+      <p class="note">copernicus sentinel-5p and sentinel-2 and nasa firms, through google earth engine. us fire incidents from nifc. place search by openstreetmap nominatim. map by carto and openstreetmap.</p>
     </div>
   </div>
 
   <div id="toast" role="status" aria-live="polite"></div>
 
-  <script src="intro.js?v=2"></script>
+  <script src="intro.js?v=3"></script>
   <script src="https://unpkg.com/maplibre-gl@5.0.0/dist/maplibre-gl.js"></script>
-  <script src="app.js?v=2"></script>
-  <script src="area.js?v=2"></script>
-  <script src="history.js?v=2"></script>
-  <script src="exports.js?v=2"></script>
-  <script src="saved.js?v=2"></script>
-  <script src="passes.js?v=2"></script>
-  <script src="timelapse.js?v=2"></script>
-  <script src="tour.js?v=2"></script>
-  <script src="pages.js?v=2"></script>
+  <script src="app.js?v=3"></script>
+  <script src="area.js?v=3"></script>
+  <script src="exports.js?v=3"></script>
+  <script src="saved.js?v=3"></script>
+  <script src="passes.js?v=3"></script>
+  <script src="timelapse.js?v=3"></script>
+  <script src="tour.js?v=3"></script>
+  <script src="pages.js?v=3"></script>
 </body>
 </html>

@@ -13,25 +13,20 @@ SO2_MIN, SO2_MAX = 0.0001, 0.0008
 
 VIS = {
     "so2": {"min": SO2_MIN, "max": SO2_MAX,
-            "palette": ["#123047", "#1d6f8c", "#2fb3b0", "#8ee6c8", "#f2fff6"]},
-    "fire": {"min": 1, "max": 3, "palette": ["#FF4D3D", "#FFD23F", "#FF9F1C"]},
+            "palette": ["#c9f2ea", "#7fd8c8", "#2bb3a3", "#14808a", "#0d4f63"]},
+    "fire": {"min": 300, "max": 500,
+             "palette": ["#ffc233", "#ff7a1a", "#ff2e63", "#a3003a"]},
     "burn": {"min": 0.1, "max": 1.0,
-             "palette": ["#FFE29A", "#FFA94D", "#F0563A", "#B3123B"]},
+             "palette": ["#ffe08a", "#ff9a3c", "#e5383b", "#7a0019"]},
     "smoke": {"min": 0.5, "max": 3.0,
-              "palette": ["#3b3b3b", "#7a6a58", "#b08a5a", "#d9a86c", "#f4e3c1"]},
-}
-
-FIRE_VIS = {
-    "modis": {"min": 0, "max": 1, "palette": ["#FF4D3D", "#FF4D3D"]},
-    "viirs": {"min": 0, "max": 2, "palette": ["#FFD23F", "#FFD23F"]},
-    "harmonized": {"min": 1, "max": 3, "palette": ["#FF4D3D", "#FFD23F", "#FF9F1C"]},
+              "palette": ["#e8e1d6", "#c8b79e", "#a08463", "#6f5640", "#3f2f24"]},
 }
 
 META = {
     "so2": {"title": "Sulfur dioxide", "palette": VIS["so2"]["palette"],
             "legend_min": f"{SO2_MIN / DU:.1f} DU", "legend_max": f"{SO2_MAX / DU:.1f} DU"},
     "fire": {"title": "Active fires", "palette": VIS["fire"]["palette"],
-             "legend_min": "MODIS", "legend_max": "VIIRS"},
+             "legend_min": "300 K", "legend_max": "500 K"},
     "burn": {"title": "Burn scars", "palette": VIS["burn"]["palette"],
              "legend_min": "Low severity", "legend_max": "High severity"},
     "smoke": {"title": "Smoke (aerosol index)", "palette": VIS["smoke"]["palette"],
@@ -113,62 +108,32 @@ def aer_stats(region, start: str, end: str):
         region, 5000, maxPixels=1e9, bestEffort=True).getInfo()
     return {"mean": r.get(f"{AER_BAND}_mean"), "p90": r.get(f"{AER_BAND}_p90")}
 
-FIRE_DATASETS = {
-    "modis": {"id": "FIRMS", "first": "2000-11-01", "description": "MODIS FIRMS (~1 km)"},
-    "viirs": {"id": "NASA/VIIRS/002/VNP14A1", "first": "2012-01-19", "description": "VIIRS VNP14A1 daily 1 km composite"},
-}
+# ---- Active fires: NASA FIRMS hotspots (about 1 km) -----------------------------------
+FIRE_ID = "FIRMS"
+FIRE_FIRST = "2000-11-01"
+FIRE_PRODUCT = "NASA FIRMS fire hotspots (~1 km)"
 
-def fire_collection(start: str, end: str, sensor: str = "modis") -> ee.ImageCollection:
-    """Choose one consistent active-fire product per request."""
-    ds = FIRE_DATASETS[sensor]
-    return ee.ImageCollection(ds["id"]).filterDate(start, plus(end, 1))
+def fire_collection(start: str, end: str) -> ee.ImageCollection:
+    return ee.ImageCollection(FIRE_ID).filterDate(start, plus(end, 1)).select(["T21", "confidence"])
 
-def fire_detection(img: ee.Image, sensor: str) -> ee.Image:
-    if sensor == "viirs":
+def fire_image(start: str, end: str) -> ee.Image:
+    """Hottest brightness temperature per pixel in the window (Kelvin); unmasked only where there was fire."""
+    col = fire_collection(start, end).select("T21")
+    return ee.Image(ee.Algorithms.If(col.size().gt(0), col.max(), _empty("T21"))).rename("T21")
 
-        mask = img.select("FireMask").gte(7)
-    else:
-        mask = img.select("T21").mask()
-    return ee.Image.constant(1).rename("hotspot").updateMask(mask)
+def fire_tile_image(start: str, end: str) -> ee.Image:
+    # grow each hotspot a little so it glows at every zoom level
+    return fire_image(start, end).focalMax(1.5, "circle", "pixels")
 
-def fire_image(start: str, end: str, sensor: str = "modis") -> ee.Image:
-    col = fire_collection(start, end, sensor)
-    detections = col.map(lambda i: fire_detection(i, sensor))
-    return ee.Image(ee.Algorithms.If(detections.size().gt(0), detections.max(), _empty("hotspot")))
-
-def fire_tile_image(start: str, end: str, sensor: str = "modis") -> ee.Image:
-    return fire_image(start, end, sensor).focalMax(1.5, "circle", "pixels")
-
-def fire_tile_coded(start: str, end: str, sensor: str) -> ee.Image:
-    """Hotspots coded by satellite: MODIS = 1, VIIRS = 2, both = 3. Harmonized combines the two."""
-    if sensor == "modis":
-        return fire_tile_image(start, end, "modis")
-    if sensor == "viirs":
-        return fire_tile_image(start, end, "viirs").multiply(2)
-    m = fire_image(start, end, "modis").unmask(0)
-    v = fire_image(start, end, "viirs").unmask(0).multiply(2)
-    both = m.add(v)
-    return both.updateMask(both.gt(0)).focalMax(1.5, "circle", "pixels")
-
-def fire_pixel_count(region, start: str, end: str, sensor: str = "modis"):
-    if sensor == "harmonized":
-        img = fire_image(start, end, "modis").unmask(0).max(fire_image(start, end, "viirs").unmask(0))
-        img = img.updateMask(img.gt(0))
-    else:
-        img = fire_image(start, end, sensor)
-    return img.reduceRegion(
+def fire_pixel_count(region, start: str, end: str):
+    return fire_image(start, end).reduceRegion(
         ee.Reducer.count(), region, 1000, maxPixels=1e9, bestEffort=True
-    ).get("hotspot").getInfo()
+    ).get("T21").getInfo()
 
-def fire_clusters(region, start: str, end: str, sensor: str = "modis"):
+def fire_clusters(region, start: str, end: str):
     """Separate fires in the window. Hotspot pixels that touch, or sit within one pixel (~2 km) of each
-    other, are grouped into one fire, since one fire usually lights up many neighbouring 1 km pixels.
-    Returns how many fires there are and how many pixels the biggest one covers."""
-    if sensor == "harmonized":
-        img = fire_image(start, end, "modis").unmask(0).max(fire_image(start, end, "viirs").unmask(0))
-    else:
-        img = fire_image(start, end, sensor).unmask(0)
-    img = img.gt(0).clip(region)
+    other, are grouped into one fire, since one fire usually lights up many neighbouring 1 km pixels."""
+    img = fire_image(start, end).mask().gt(0).unmask(0).clip(region)
     grouped = img.focalMax(1, "square", "pixels").selfMask().rename("zone")
     fires = ee.Image.cat(grouped, img.rename("px")).reduceToVectors(
         reducer=ee.Reducer.sum(), geometry=region, scale=1000, geometryType="centroid",
@@ -178,33 +143,26 @@ def fire_clusters(region, start: str, end: str, sensor: str = "modis"):
     sizes = sorted((round(s) for s in sizes), reverse=True)
     return {"count": len(sizes), "largest_px": sizes[0] if sizes else 0, "sizes": sizes[:20]}
 
-def fire_calendar(region, year: int, month: int, sensor: str = "modis"):
-    """Daily detection-pixel counts in one requested month. Missing observations stay null."""
+def fire_calendar(region, year: int, month: int):
+    """Daily fire-hotspot counts in one month. Days with no satellite data stay null."""
     import calendar
     days = calendar.monthrange(year, month)[1]
     start = date(year, month, 1).isoformat()
     end = (date(year, month, days) + timedelta(days=1)).isoformat()
-    col = ee.ImageCollection(FIRE_DATASETS[sensor]["id"]).filterDate(start, end)
+    col = ee.ImageCollection(FIRE_ID).filterDate(start, end).select("T21")
     start_ee = ee.Date(start)
 
     def daily(index):
         day = start_ee.advance(ee.Number(index), "day")
         sample = col.filterDate(day, day.advance(1, "day"))
-        image = ee.Image(ee.Algorithms.If(
-            sample.size().gt(0),
-            sample.map(lambda i: fire_detection(i, sensor)).max(),
-            _empty("hotspot"),
-        ))
-        count = image.reduceRegion(ee.Reducer.count(), region, 1000,
-                                   maxPixels=1e9, bestEffort=True).get("hotspot")
+        image = ee.Image(ee.Algorithms.If(sample.size().gt(0), sample.max(), _empty("T21")))
+        count = image.reduceRegion(ee.Reducer.count(), region, 1000, maxPixels=1e9, bestEffort=True).get("T21")
         return ee.Feature(None, {"date": day.format("YYYY-MM-dd"),
-                                 "count": ee.Algorithms.If(sample.size().gt(0),
-                                                            ee.Algorithms.If(count, count, 0), None),
+                                 "count": ee.Algorithms.If(sample.size().gt(0), ee.Algorithms.If(count, count, 0), None),
                                  "observations": sample.size()})
 
     features = ee.FeatureCollection(ee.List.sequence(0, days - 1).map(daily)).getInfo()["features"]
-    return [{"date": f["properties"]["date"],
-             "count": f["properties"].get("count"),
+    return [{"date": f["properties"]["date"], "count": f["properties"].get("count"),
              "observations": f["properties"].get("observations", 0)} for f in features]
 
 def s2_collection(region, start: str, end: str) -> ee.ImageCollection:
@@ -248,28 +206,18 @@ def burned_hectares(region, end: str, radius_km: float = 50):
     v = v.getInfo()
     return 0 if v is None else v / 10000
 
-CONFIDENCE_MIN = {
-    "modis": {"all": 0, "nominal": 30, "high": 80},
-    "viirs": {"all": 7, "nominal": 8, "high": 9},
-}
+CONFIDENCE_MIN = {"all": 0, "nominal": 30, "high": 80}
 
-def hotspot_records(region, start: str, end: str, sensor: str = "modis",
-                    confidence: str = "all", limit: int = 5000):
-    """One row per detected fire pixel per day inside `region`, filtered by confidence."""
-    col = fire_collection(start, end, sensor)
-    floor = CONFIDENCE_MIN[sensor][confidence]
+def hotspot_records(region, start: str, end: str, confidence: str = "all", limit: int = 5000):
+    """One row per fire hotspot per day inside `region`, filtered by confidence."""
+    col = fire_collection(start, end)
+    floor = CONFIDENCE_MIN[confidence]
 
     def per_image(img):
         img = ee.Image(img)
-        if sensor == "viirs":
-            conf = img.select("FireMask")
-            keep = conf.gte(floor)
-            extra = conf.rename("conf").addBands(img.select("MaxFRP").multiply(0.1).rename("frp"))
-        else:
-            conf = img.select("confidence")
-            keep = img.select("T21").mask().And(conf.gte(floor))
-            extra = conf.rename("conf").addBands(img.select("T21").rename("t21"))
-        stack = ee.Image.pixelLonLat().addBands(extra).updateMask(keep)
+        conf = img.select("confidence")
+        keep = img.select("T21").mask().And(conf.gte(floor))
+        stack = ee.Image.pixelLonLat().addBands(conf.rename("conf")).addBands(img.select("T21").rename("t21")).updateMask(keep)
         day = img.date().format("YYYY-MM-dd")
         pts = stack.sample(region=region, scale=1000, geometries=False, dropNulls=True, tileScale=4)
         return pts.map(lambda f: f.set("date", day))
@@ -279,25 +227,19 @@ def hotspot_records(region, start: str, end: str, sensor: str = "modis",
     for f in fc.getInfo()["features"]:
         p = f["properties"]
         conf = p.get("conf")
-        if sensor == "viirs":
-            cls = {7: "low", 8: "nominal", 9: "high"}.get(int(conf) if conf is not None else -1, "")
-        else:
-            cls = "" if conf is None else ("high" if conf >= 80 else "nominal" if conf >= 30 else "low")
         rows.append({
             "date": p.get("date"),
             "latitude": round(p["latitude"], 5) if p.get("latitude") is not None else None,
             "longitude": round(p["longitude"], 5) if p.get("longitude") is not None else None,
-            "sensor": sensor.upper(),
-            "product": FIRE_DATASETS[sensor]["description"],
+            "product": FIRE_PRODUCT,
             "confidence": conf,
-            "confidence_class": cls,
-            "brightness_t21_k": round(p["t21"], 2) if p.get("t21") is not None else None,
-            "frp_mw": round(p["frp"], 2) if p.get("frp") is not None else None,
+            "confidence_class": "" if conf is None else ("high" if conf >= 80 else "nominal" if conf >= 30 else "low"),
+            "brightness_k": round(p["t21"], 2) if p.get("t21") is not None else None,
         })
     return rows
 
-def summarize_month(days, year: int, month: int, sensor: str):
-    """Collapse one month of daily calendar counts into a harmonised summary row."""
+def summarize_month(days, year: int, month: int):
+    """Collapse one month of daily calendar counts into a summary row."""
     import calendar
     n_days = calendar.monthrange(year, month)[1]
     observed = [d for d in (days or []) if d.get("count") is not None]
@@ -306,161 +248,12 @@ def summarize_month(days, year: int, month: int, sensor: str):
     peak = max(observed, key=lambda d: d["count"], default=None)
     return {
         "month": f"{year}-{month:02d}",
-        "sensor": sensor.upper(),
-        "product": FIRE_DATASETS[sensor]["description"],
-        "grid_km": 1,
+        "product": FIRE_PRODUCT,
         "days_in_month": n_days,
         "days_observed": len(observed),
-        "days_with_detections": len(active),
-        "fire_pixel_days": total if observed else None,
-        "mean_daily_pixels": round(total / len(observed), 2) if observed else None,
-        "max_daily_pixels": peak["count"] if peak else None,
+        "days_with_fire": len(active),
+        "hotspot_days": total if observed else None,
+        "mean_daily_hotspots": round(total / len(observed), 2) if observed else None,
+        "max_daily_hotspots": peak["count"] if peak else None,
         "peak_date": peak["date"] if peak and peak["count"] > 0 else None,
-        "active_day_share": round(len(active) / len(observed), 3) if observed else None,
     }
-
-VIIRS_FIRST = date(2012, 1, 19)
-
-def resolve_sensor(sensor: str, day) -> str:
-    """'harmonized' reads VIIRS from its first day on, and MODIS before that."""
-    if sensor != "harmonized":
-        return sensor
-    d = _d(day) if isinstance(day, str) else day
-    return "viirs" if d >= VIIRS_FIRST else "modis"
-
-def monthly_counts(region, sensor: str, first: date, n_months: int):
-    """Hotspot pixel-days per month for `n_months` months starting at `first` (1st of a month)."""
-    col = ee.ImageCollection(FIRE_DATASETS[sensor]["id"])
-    start = ee.Date(first.isoformat())
-
-    def per_month(i):
-        m0 = start.advance(ee.Number(i), "month")
-        sub = col.filterDate(m0, m0.advance(1, "month"))
-
-        img = sub.map(lambda im: fire_detection(im, sensor)).count().rename("hotspot")
-        total = img.reduceRegion(ee.Reducer.sum(), region, 1000, maxPixels=1e10, tileScale=4).get("hotspot")
-        return ee.Feature(None, {"month": m0.format("YYYY-MM"), "days": sub.size(),
-                                 "v": ee.Algorithms.If(sub.size().gt(0), total, None)})
-
-    feats = ee.FeatureCollection(ee.List.sequence(0, n_months - 1).map(per_month)).getInfo()["features"]
-    out = {}
-    for f in feats:
-        p = f["properties"]
-        v = p.get("v")
-        out[p["month"]] = None if v is None or not p.get("days") else round(v)
-    return out
-
-def _median(xs):
-    xs = sorted(xs)
-    n = len(xs)
-    if not n:
-        return None
-    return xs[n // 2] if n % 2 else (xs[n // 2 - 1] + xs[n // 2]) / 2
-
-def _pearson(xs, ys):
-    n = len(xs)
-    if n < 3:
-        return None
-    mx, my = sum(xs) / n, sum(ys) / n
-    sx = sum((x - mx) ** 2 for x in xs) ** .5
-    sy = sum((y - my) ** 2 for y in ys) ** .5
-    if not sx or not sy:
-        return None
-    return sum((x - mx) * (y - my) for x, y in zip(xs, ys)) / (sx * sy)
-
-def harmonize(months, modis: dict, viirs: dict, current_month: str):
-    """Join both records into one VIIRS-equivalent series, then add anomalies and summary stats.
-
-    Method: in the months where both sensors observed the area (2012 → now), the ratio of their totals
-    k = sum(VIIRS) / sum(MODIS) says how many VIIRS pixel-days one MODIS pixel-day is worth here.
-    Calendar months with enough overlap get their own k (fire season can change the ratio);
-    the rest use the overall k. Harmonised value = VIIRS where VIIRS exists, else MODIS × k.
-    """
-
-    viirs = {m: v for m, v in viirs.items() if m >= "2012-02"}
-    overlap = [m for m in months if modis.get(m) is not None and viirs.get(m) is not None]
-    sm = sum(modis[m] for m in overlap)
-    sv = sum(viirs[m] for m in overlap)
-    k = sv / sm if sm > 0 else 1.0
-    seasonal = {}
-    for mm in range(1, 13):
-        ms = [m for m in overlap if int(m[5:]) == mm]
-        a, b = sum(modis[m] for m in ms), sum(viirs[m] for m in ms)
-        if len(ms) >= 3 and a >= 30:
-            seasonal[mm] = b / a
-    r = _pearson([modis[m] for m in overlap], [viirs[m] for m in overlap])
-
-    rows = []
-    for m in months:
-        mo, vi = modis.get(m), viirs.get(m)
-        km = seasonal.get(int(m[5:]), k)
-        if vi is not None:
-            h, src = vi, "VIIRS"
-        elif mo is not None:
-            h, src = round(mo * km, 1), "MODIS x k"
-        else:
-            h, src = None, ""
-        rows.append({"month": m, "year": int(m[:4]), "mon": int(m[5:]), "modis": mo, "viirs": vi,
-                     "k_used": round(km, 3) if mo is not None and vi is None else None,
-                     "harmonized": h, "source": src})
-
-    by_mon = {mm: [r_ for r_ in rows if r_["mon"] == mm and r_["harmonized"] is not None] for mm in range(1, 13)}
-    for r_ in rows:
-        others = [o["harmonized"] for o in by_mon[r_["mon"]] if o["year"] != r_["year"]]
-        base = _median(others) if len(others) >= 3 else None
-        r_["baseline_median"] = None if base is None else round(base, 1)
-        h = r_["harmonized"]
-        if h is None or base is None:
-            r_["anomaly_pct"] = None
-            r_["rank_in_month"] = None
-            continue
-        r_["anomaly_pct"] = round((h - base) / base * 100, 1) if base > 0 else (None if h == 0 else 999.0)
-        same = sorted((o["harmonized"] for o in by_mon[r_["mon"]]), reverse=True)
-        r_["rank_in_month"] = same.index(h) + 1
-
-    years = sorted({r_["year"] for r_ in rows})
-    annual = []
-    for y in years:
-        ys = [r_ for r_ in rows if r_["year"] == y]
-        vals = [r_["harmonized"] for r_ in ys if r_["harmonized"] is not None]
-        annual.append({"year": y, "total": round(sum(vals), 1) if vals else None, "complete": len(vals) == 12})
-    complete = [a for a in annual if a["complete"] and a["total"] is not None]
-    slope = None
-    if len(complete) >= 5:
-        xs, ys_ = [a["year"] for a in complete], [a["total"] for a in complete]
-        mx, my = sum(xs) / len(xs), sum(ys_) / len(ys_)
-        den = sum((x - mx) ** 2 for x in xs)
-        slope = sum((x - mx) * (y - my) for x, y in zip(xs, ys_)) / den if den else None
-    seasonal_median = [{"mon": mm, "median": _median([o["harmonized"] for o in by_mon[mm]])} for mm in range(1, 13)]
-    ranked = sorted((s for s in seasonal_median if s["median"] is not None), key=lambda s: -s["median"])
-
-    avg_med = sum(s["median"] for s in ranked) / len(ranked) if ranked else 0
-    critical = [s["mon"] for s in ranked[:3] if s["median"] >= 20 and s["median"] >= 1.5 * avg_med]
-    peak_year = max(complete, key=lambda a: a["total"], default=None)
-    peak_month = max((r_ for r_ in rows if r_["harmonized"] is not None), key=lambda r_: r_["harmonized"], default=None)
-    cur = next((r_ for r_ in rows if r_["month"] == current_month), None)
-    mean_complete = sum(a["total"] for a in complete) / len(complete) if complete else None
-
-    return {
-        "unit": "hotspot pixel-days (VIIRS-equivalent, 1 km)",
-        "method": {
-            "k": round(k, 3), "seasonal_k": {str(mm): round(v, 3) for mm, v in seasonal.items()},
-            "r": None if r is None else round(r, 3), "overlap_months": len(overlap),
-            "overlap_modis_total": sm, "overlap_viirs_total": sv,
-            "text": "VIIRS where it exists (from Jan 2012); before that MODIS x k, where k = VIIRS/MODIS ratio of "
-                    "totals in the overlap months for this area (per calendar month when there is enough overlap).",
-        },
-        "rows": rows,
-        "annual": annual,
-        "seasonal": seasonal_median,
-        "stats": {
-            "total": round(sum(r_["harmonized"] for r_ in rows if r_["harmonized"] is not None), 1),
-            "peak_year": peak_year, "peak_month": peak_month and {"month": peak_month["month"], "value": peak_month["harmonized"]},
-            "critical_months": critical,
-            "trend_per_year": None if slope is None else round(slope, 2),
-            "trend_pct_per_decade": None if slope is None or not mean_complete else round(slope * 10 / mean_complete * 100, 1),
-            "current": cur,
-        },
-        "overlap_points": [[modis[m], viirs[m], m] for m in overlap],
-    }
-

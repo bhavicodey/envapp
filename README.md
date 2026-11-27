@@ -11,26 +11,19 @@ Fires, smoke and burn scars from space, 2000 to today, on one globe. Powered by 
 
 ## What it does
 
-| Part | Data | What you get |
+| Part | Satellite | What you get |
 |---|---|---|
-| Active fires | MODIS (FIRMS, since 2000) and VIIRS (VNP14A1, since 2012) | Hotspots on the map, fire pixels and separate fires in your area. “Both” joins them into one record. |
+| Smoke | Sentinel-5P (aerosol index) | Smoke map, smoke index for your area, and a plain-language health card with what to do today |
 | Sulfur dioxide | Sentinel-5P | 7-day median map, your area vs its own 30-day normal, 30-day chart |
-| Smoke | `COPERNICUS/S5P/OFFL/L3_AER_AI` (and `NRTI` for the last 10 days) | Absorbing Aerosol Index (smoke and dust), 7-day median |
+| Active fires | NASA FIRMS hotspots | Hotspots on the map, hotspot count and separate fires in your area |
 | Burn scars | Sentinel-2 | Burn severity (dNBR) map and burned hectares |
 | Reported fires | NIFC (US fire agencies, 2014 on) | Wildfires agencies reported in the same window |
-| Burn calendar | MODIS / VIIRS | Every day of the month, colored by how much fire was detected |
-| Fire history | MODIS + VIIRS | Every month since 2000, how this month compares, trend per decade |
-| Satellite passes | Sentinel-5P, Sentinel-2, MODIS, VIIRS | Watch each satellite sweep over your place, drawn to scale. Sentinel times are real, from the image archive. |
-| Saved | | Save readings and watched places. Kept in `data/saved.json` and in the browser. Backup and import as JSON. |
-| Export | | Hotspot records, monthly summaries, calendar CSV and PNG |
+| Burn calendar | NASA FIRMS | Every day of the month, colored by how much fire was seen |
+| Satellite passes | Sentinel-5P, Sentinel-2 | Watch each Sentinel sweep over your place, drawn to scale, with the real times it flew over |
+| Saved | | My people & places (check smoke for all of them at once) and saved readings. Kept in `data/saved.json` and in the browser. Backup and import as JSON. |
+| Export | | Fire hotspot records, monthly summaries, calendar CSV and PNG |
 
 Also: place search, draw your own area, play through time, a one-year fire time-lapse, color-blind safe colors, and a guided tour.
-
-## How “Both” works
-
-VIIRS has sharper pixels and sees more fires than MODIS. From 2012 on, firescout uses VIIRS. Before that it uses
-MODIS × k, where k is the VIIRS/MODIS ratio in the months both satellites were flying over your area.
-So every year is on the same scale.
 
 ## Folders
 

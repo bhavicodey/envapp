@@ -1,32 +1,21 @@
 "use strict";
 
-// Watch satellites pass over your place: Sentinel-5P, Sentinel-2, MODIS and VIIRS.
-// The sweep is drawn to scale (real altitude, swath width and direction of travel). For the two Sentinels the
-// times come from the real image archive (/api/passes); MODIS and VIIRS fire data has no time of day in
-// Earth Engine, so for those we show their fixed overpass schedule.
+// Watch the two Sentinels pass over your place: Sentinel-5P (smoke, sulfur dioxide) and Sentinel-2 (burn scars).
+// The sweep is drawn to scale (real altitude, swath width and direction of travel), and the times come from
+// the real image archive (/api/passes).
 (function () {
   const q = (s, r = document) => r.querySelector(s);
   const R_EARTH = 6371;
   const SATS = {
     s5p: {
-      name: "Sentinel-5P", platform: "TROPOMI spectrometer · ESA / Copernicus", color: "#2fd4c4",
+      name: "Sentinel-5P", platform: "TROPOMI spectrometer · ESA / Copernicus", color: "#0ea5a0",
       altKm: 824, swathKm: 2600, heading: 347, scanS: 0.9, local: "≈ 1:30 pm", dir: "Heads north",
-      measures: "Sulfur dioxide, the SO₂ layer. Sees the whole planet every day.", api: "sentinel5p",
+      measures: "Smoke and sulfur dioxide. Sees the whole planet every day.", api: "sentinel5p",
     },
     s2: {
-      name: "Sentinel-2", platform: "MSI camera · Sentinel-2A, 2B and 2C", color: "#b48cff",
+      name: "Sentinel-2", platform: "MSI camera · Sentinel-2A, 2B and 2C", color: "#7c5cdb",
       altKm: 786, swathKm: 290, heading: 193, scanS: 0.35, local: "≈ 10:30 am", dir: "Heads south",
       measures: "Burn scars, the burn layer. 10–20 m detail, so it passes less often.", api: "sentinel2",
-    },
-    modis: {
-      name: "MODIS", platform: "Terra (≈ 10:30 am) and Aqua (≈ 1:30 pm) · NASA", color: "#ff4d3d",
-      altKm: 705, swathKm: 2330, heading: 192, scanS: 0.42, local: "≈ 10:30 am + 1:30 pm", dir: "Terra heads south",
-      measures: "Active fires since 2000, about 1 km pixels.", api: null,
-    },
-    viirs: {
-      name: "VIIRS", platform: "Suomi NPP and NOAA-20 · NASA / NOAA", color: "#ffd23f",
-      altKm: 824, swathKm: 3040, heading: 347, scanS: 0.5, local: "≈ 1:30 pm", dir: "Heads north",
-      measures: "Active fires since 2012, 375 m pixels, so it catches smaller fires.", api: null,
     },
   };
   const KEYS = Object.keys(SATS);
@@ -183,7 +172,6 @@
 
   function passInfo(k) {
     const s = SATS[k], pin = window.firescout.snapshot().pin;
-    if (!s.api) return { line: `Over every place about twice a day, ${s.local} local time and again at night.`, list: [] };
     if (!pin) return { line: "Pick a place to see its real passes.", list: [] };
     if (log === "loading" || log === null) return { line: "Reading the image archive…", list: [], loading: true };
     if (log.error) return { line: log.error, list: [] };
@@ -208,7 +196,7 @@
         <p class="sat-measures"></p>
         <dl class="sat-facts"><div><dt>Height</dt><dd></dd></div><div><dt>Swath</dt><dd></dd></div><div><dt>Overhead</dt><dd></dd></div></dl>
         <p class="sat-log"></p><p class="sat-sub note"></p>
-        <div class="sat-actions"><button type="button" class="ghost sat-play">Watch pass</button></div>`;
+        <div class="sat-actions"><button type="button" class="ghost sat-play">watch it pass</button></div>`;
       card.querySelector("h3").textContent = s.name;
       card.querySelector(".sat-plat").textContent = s.platform;
       card.querySelector(".sat-measures").textContent = s.measures;
@@ -237,7 +225,7 @@
   function hud() {
     if (!playing.length) return;
     const box = q("#pass-hud"), ul = q("#pass-hud-list"); box.hidden = false; ul.replaceChildren();
-    q("#pass-hud-title").textContent = playing.length > 1 ? "Four satellites passing over" : `${SATS[playing[0]].name} passing over`;
+    q("#pass-hud-title").textContent = playing.length > 1 ? "both sentinels passing over" : `${SATS[playing[0]].name} passing over`;
     for (const k of playing) {
       const s = SATS[k], info = passInfo(k), li = document.createElement("li");
       li.style.setProperty("--c", s.color);
@@ -252,11 +240,11 @@
     const on = !!center && ready;
     document.querySelectorAll(".sat-play").forEach((b) => {
       const k = b.closest(".sat-card").dataset.sat, now = playing.includes(k);
-      b.disabled = !on; b.textContent = now ? "Passing…" : "Watch pass"; b.classList.toggle("on", now);
+      b.disabled = !on; b.textContent = now ? "passing…" : "watch it pass"; b.classList.toggle("on", now);
     });
-    const all = q("#pass-all"); all.disabled = !on; all.textContent = playing.length > 1 ? "Stop" : "Watch all four pass";
-    q("#pass-note").textContent = on ? "Each sweep is drawn to scale: real height, swath width and direction. Sentinel times come from the image archive."
-      : "Pick a place, then watch each satellite sweep across it.";
+    const all = q("#pass-all"); all.disabled = !on; all.textContent = playing.length > 1 ? "stop" : "watch both pass";
+    q("#pass-note").textContent = on ? "each sweep is drawn to scale: real height, swath width and direction. the times are real, from the image archive."
+      : "pick a place, then watch each sentinel sweep across it.";
   }
 
   // ---------------------------------------------------------------- wiring
