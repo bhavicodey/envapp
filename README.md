@@ -1,83 +1,52 @@
-# firescout ♡
+# firescout
 
-fires, sulfur dioxide and burn scars on one pink little globe, powered by google earth engine.
+Fires, smoke and burn scars from space, 2000 to today, on one globe. Powered by Google Earth Engine.
 
-## run it (the easy way)
+## Run it
 
-1. **unzip** the folder anywhere.
-2. **double-click the starter**
-   - windows: `start.bat`
-   - mac: `start.command` (first time: right-click → open)
-   - linux: `./start.sh`
-3. the first time, it asks for your **google cloud project id** (the one registered for earth engine at
-   https://code.earthengine.google.com/register) and opens a google sign-in page once. that's it.
-4. your browser opens firescout automatically. answer the two cute questions and explore ♡
+1. Double-click `start.bat` (Windows), `start.command` (Mac) or run `./start.sh` (Linux).
+   Or in VS Code press **F5**.
+2. The first time, enter your Google Cloud project ID (registered for Earth Engine) and sign in to Google once.
+3. The app opens at http://127.0.0.1:8000. Add `?skip` to the address to skip the welcome screens.
 
-> prefer to set it up yourself? copy `.env.example` to `.env`, put your project id after `EE_PROJECT=`, and the starter will skip the question.
+## What it does
 
-you need **python 3.10+** installed (https://www.python.org/downloads/ , tick "add python to PATH" on windows). everything else is automatic.
-
-## what's inside
-
-| layer | earth engine data | what it shows |
+| Part | Data | What you get |
 |---|---|---|
-| sulfur dioxide | `COPERNICUS/S5P/OFFL/L3_SO2` (and `NRTI` for the last 10 days) | so2 column density, 7-day median, cloud-masked |
-| active fires | `FIRMS` (nasa modis hotspots) | fire pixels, last 7 days |
-| burn scars | `COPERNICUS/S2_SR_HARMONIZED` | dnbr burn severity, 30 days after vs. a pre-fire baseline |
+| Active fires | MODIS (FIRMS, since 2000) and VIIRS (VNP14A1, since 2012) | Hotspots on the map, fire pixels and separate fires in your area. “Both” joins them into one record. |
+| Sulfur dioxide | Sentinel-5P | 7-day median map, your area vs its own 30-day normal, 30-day chart |
+| Smoke | `COPERNICUS/S5P/OFFL/L3_AER_AI` (and `NRTI` for the last 10 days) | Absorbing Aerosol Index (smoke and dust), 7-day median |
+| Burn scars | Sentinel-2 | Burn severity (dNBR) map and burned hectares |
+| Reported fires | NIFC (US fire agencies, 2014 on) | Wildfires agencies reported in the same window |
+| Burn calendar | MODIS / VIIRS | Every day of the month, colored by how much fire was detected |
+| Fire history | MODIS + VIIRS | Every month since 2000, how this month compares, trend per decade |
+| Satellite passes | Sentinel-5P, Sentinel-2, MODIS, VIIRS | Watch each satellite sweep over your place, drawn to scale. Sentinel times are real, from the image archive. |
+| Saved | | Save readings and watched places. Kept in `data/saved.json` and in the browser. Backup and import as JSON. |
+| Export | | Hotspot records, monthly summaries, calendar CSV and PNG |
 
-click the globe to get a readout: fire pixels, so2 compared with that area's own 30-day normal, burned hectares and a 30-day so2 chart.
-when fires and raised so2 show up together, the readout says so.
+Also: place search, draw your own area, play through time, a one-year fire time-lapse, color-blind safe colors, and a guided tour.
 
-## things to try
+## How “Both” works
 
-- click **los angeles fires, jan 2025** under *try a place*.
-- turn on **burn scars** after dropping a pin.
-- press **play** to step through time three days at a time.
-- pin a place, choose **watch this place**, then **check all for this date**.
-- the **? how it works** button replays the quick tour any time.
+VIIRS has sharper pixels and sees more fires than MODIS. From 2012 on, firescout uses VIIRS. Before that it uses
+MODIS × k, where k is the VIIRS/MODIS ratio in the months both satellites were flying over your area.
+So every year is on the same scale.
 
-## project layout
+## Folders
 
-```
-firescout/
-├── start.bat / start.command / start.sh   one-click starters
-├── run.py                 first-run setup + starts the server
-├── check_ee.py            tests your earth engine connection
-├── .env.example           copy to .env (run.py does this for you)
-├── backend/
-│   ├── config.py          thresholds, paths, env vars
-│   ├── ee_client.py       earth engine start-up
-│   ├── layers.py          all earth engine logic + layer colors (VIS)
-│   └── main.py            fastapi endpoints + serves the frontend
-└── frontend/
-    ├── index.html         the app + intro questions + popups
-    ├── intro.js           name → purpose → quick tour
-    ├── app.js             map, layers, readout, timeline, watchlist
-    └── style.css          the white / pink / red theme (colors are the variables at the top)
-```
+- `backend/` Python server (FastAPI + Earth Engine). `passes.py` reads real satellite pass times, `saved.py` stores saved data.
+- `frontend/` the web page
+- `data/` your saved places and readings (created on first save, not committed)
+- `.cache/` finished months of fire data, so they load instantly next time (not committed)
 
-## tuning
+## Tuning
 
-- alert rules: `backend/config.py` (`ALERT_SO2_RATIO`, `WATCH_FIRE_PIXELS`, ...).
-- map layer colors: `VIS` in `backend/layers.py` (legends update themselves).
-- app colors: the `:root` variables at the top of `frontend/style.css`.
-- the intro questions: `frontend/index.html` (look for `id="intro"`).
-- "burned" threshold: dnbr above 0.27 in `burned_hectares()`.
+- Alert rules: `backend/config.py`
+- Map colors: `VIS` in `backend/layers.py`
+- “Burned” threshold: dNBR above 0.27 in `burned_hectares()`
 
-## troubleshooting
+## Notes on the science
 
-| problem | fix |
-|---|---|
-| "set EE_PROJECT" banner | open `.env`, set your project id, restart. |
-| "earth engine could not start" | run `start` again to redo the google sign-in; make sure the project is registered for earth engine and the earth engine api is enabled. |
-| "no ... data for this window yet" | satellite data lags a few days. move the date earlier. |
-| burn scars layer empty | pin an area first. sentinel-2 needs clear-sky images in the 30 days before the date. |
-| slow first load | earth engine computes on demand. results are cached for an hour. |
-| blank map | the page loads the map, fonts and tiles from the internet. check your connection. |
-
-## notes on the science
-
-- fire pixels are roughly 1 km modis hotspots, not individual fires.
-- sulfur dioxide also comes from volcanoes and industry, so a spike next to fires means "co-occurring", not "caused by".
-- so2 is shown in dobson units (1 du = 4.46e-4 mol/m²).
-- dnbr is masked to land that was green before the fire (pre-fire nbr above 0.1) to cut false positives from water and bare ground.
+- Fire pixels are roughly 1 km hotspots, not individual fires.
+- Sulfur dioxide also comes from volcanoes and industry, so a spike next to fires means “co-occurring”, not “caused by”.
+- Sulfur dioxide is in Dobson units (1 DU = 4.46e-4 mol/m²).
