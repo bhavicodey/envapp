@@ -32,7 +32,7 @@
   }
 
   function personalize(p) {
-    $("#lede").textContent = p?.name ? `hi ${p.name.toLowerCase()} ♡ search a place or click the globe to see fires, smoke and burn scars.` : "fires, smoke and burn scars from space. search a place or click the globe.";
+    $("#lede").textContent = p?.name ? `Hi ${p.name}! Pick a place to see its fires, smoke and burn scars.` : "Pick a place to see its fires, smoke and burn scars.";
     const want = p?.why || "";
     $$("#presets button").forEach((b, i) => b.classList.toggle("pick", want ? (b.dataset.for || "").split(" ").includes(want) : i === 0));
   }

@@ -149,12 +149,12 @@ async function loadLayer(name) {
   const token = ++state.tokens[name];
   const row = $(`.layer[data-layer="${name}"]`);
   if (!state.layers[name].on) { removeRaster(name); setStatus(name, ""); row.classList.remove("busy"); return; }
-  if (name === "burn" && !state.pin) { removeRaster(name); setStatus(name, "Pick a place first."); return; }
+  if (name === "burn" && !state.pin) { removeRaster(name); setStatus(name, "Pick a place first. Burn scars are measured around it."); return; }
   setStatus(name, "Loading…"); row.classList.add("busy");
   try {
     const { url } = await api(`tiles/${name}`, tileParams());
     if (token !== state.tokens[name]) return;
-    setRaster(name, url); setStatus(name, windowNote(name));
+    setRaster(name, url); setStatus(name, "");
   } catch (err) {
     if (token !== state.tokens[name]) return;
     removeRaster(name); setStatus(name, err.message, "warn");
@@ -201,7 +201,7 @@ async function analyze() {
 
   $("#v-fire").textContent = "…"; setText("#v-fires", "…"); $("#n-fires").textContent = "";
   setText("#v-so2", "…"); $("#n-so2").textContent = ""; $("#v-burn").textContent = "…";
-  setText("#v-smoke", "…"); $("#n-smoke").textContent = ""; $("#health").hidden = true; $("#hero").dataset.level = "";
+  setText("#v-smoke", "…"); $("#n-smoke").textContent = ""; $("#health").hidden = true; $("#hero").dataset.level = ""; $("#level-chip").hidden = true;
   const sig = $("#signal"); sig.dataset.level = "none"; sig.classList.remove("seen"); sig.textContent = "Reading the satellites…";
   $("#place-sub").textContent = `${state.poly ? "Inside your drawn shape" : `Within ${state.radius} km`} · 7 days to ${fmt(state.end)}`;
 
@@ -292,6 +292,7 @@ function smokeWords(v) {
 function renderHealth(h) {
   const box = $("#health");
   $("#hero").dataset.level = h ? h.level : "";
+  const chip = $("#level-chip"); chip.hidden = !h; if (h) { chip.textContent = h.headline; chip.dataset.level = h.level; }
   if (!h) { box.hidden = true; return; }
   box.dataset.level = h.level;
   $("#health-head").textContent = h.headline;
@@ -340,7 +341,7 @@ function updateTimelineText() {
   slider.value = Math.round((state.end - MIN_DATE) / DAY);
   slider.style.setProperty("--fill", `${(slider.value / slider.max) * 100}%`);
   dateInput.value = iso(state.end);
-  $("#window-note").textContent = `smoke, so₂ and fires: 7 days to ${fmt(state.end).toLowerCase()} · burn scars: 30 days`;
+  $("#window-note").textContent = `Showing the 7 days up to ${fmt(state.end)} · burn scars use 30 days`;
 }
 function setDate(ms, { refresh = true } = {}) {
   state.end = clampDate(ms); updateTimelineText();
@@ -356,7 +357,7 @@ $("#next-day").addEventListener("click", () => setDate(state.end + DAY));
 
 function setPlayBtn(playing) {
   const b = $("#play");
-  b.querySelector("span").textContent = playing ? "pause" : "play";
+  b.querySelector("span").textContent = playing ? "Pause" : "Play";
   b.querySelector("path").setAttribute("d", playing ? "M7 5h4v14H7zM13 5h4v14h-4z" : "M8 5v14l11-7z");
   b.classList.toggle("on", playing);
 }
@@ -403,6 +404,10 @@ $$(".presets button").forEach((b) => b.addEventListener("click", () => {
   map.flyTo({ center: [lon, lat], zoom: +b.dataset.zoom, duration: reduceMotion ? 0 : 2400 });
   refreshAll();
 }));
+
+// the place card's "start here" buttons
+$("#start-try").addEventListener("click", () => $("#presets button")?.click());
+$("#start-search").addEventListener("click", () => { const i = $("#place-q"); i.focus(); i.select(); });
 
 map.on("click", (e) => {
   if (state.drawing) return;
@@ -519,7 +524,7 @@ function redrawCalendar() {
   const total = days.reduce((s, d) => s + (d.count || 0), 0);
   const peak = days.reduce((p, d) => (d.count || 0) > (p?.count || 0) ? d : p, null);
   $("#calendar-note").textContent = `${active} of ${observed} days had fire · ${Math.round(total).toLocaleString()} hotspots`
-    + (peak?.count ? ` · busiest ${fmt(Date.parse(peak.date)).toLowerCase()}` : "");
+    + (peak?.count ? ` · busiest ${fmt(Date.parse(peak.date))}` : "");
 }
 async function loadCalendar() {
   const token = ++state.calendarToken;
@@ -532,8 +537,8 @@ async function loadCalendar() {
   showCalendar(empty, year, month); lastCalendar = null;
   $("#fire-calendar").classList.toggle("loading", !!state.pin);
   state.calendarDays = null; window.dispatchEvent(new CustomEvent("firescout:calendar"));
-  if (!state.pin) { $("#calendar-note").textContent = "pick a place to see the calendar."; return; }
-  $("#calendar-note").textContent = "loading daily fire hotspots…";
+  if (!state.pin) { $("#calendar-note").textContent = "Pick a place to see its calendar."; return; }
+  $("#calendar-note").textContent = "Loading daily fire hotspots…";
   try {
     const r = await api("fire_calendar", { year, month, ...areaParams() });
     if (token !== state.calendarToken) return;

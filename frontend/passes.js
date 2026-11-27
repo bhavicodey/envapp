@@ -196,7 +196,7 @@
         <p class="sat-measures"></p>
         <dl class="sat-facts"><div><dt>Height</dt><dd></dd></div><div><dt>Swath</dt><dd></dd></div><div><dt>Overhead</dt><dd></dd></div></dl>
         <p class="sat-log"></p><p class="sat-sub note"></p>
-        <div class="sat-actions"><button type="button" class="ghost sat-play">watch it pass</button></div>`;
+        <div class="sat-actions"><button type="button" class="ghost sat-play">Watch it pass</button></div>`;
       card.querySelector("h3").textContent = s.name;
       card.querySelector(".sat-plat").textContent = s.platform;
       card.querySelector(".sat-measures").textContent = s.measures;
@@ -225,7 +225,7 @@
   function hud() {
     if (!playing.length) return;
     const box = q("#pass-hud"), ul = q("#pass-hud-list"); box.hidden = false; ul.replaceChildren();
-    q("#pass-hud-title").textContent = playing.length > 1 ? "both sentinels passing over" : `${SATS[playing[0]].name} passing over`;
+    q("#pass-hud-title").textContent = playing.length > 1 ? "Both Sentinels passing over" : `${SATS[playing[0]].name} passing over`;
     for (const k of playing) {
       const s = SATS[k], info = passInfo(k), li = document.createElement("li");
       li.style.setProperty("--c", s.color);
@@ -240,11 +240,11 @@
     const on = !!center && ready;
     document.querySelectorAll(".sat-play").forEach((b) => {
       const k = b.closest(".sat-card").dataset.sat, now = playing.includes(k);
-      b.disabled = !on; b.textContent = now ? "passing…" : "watch it pass"; b.classList.toggle("on", now);
+      b.disabled = !on; b.textContent = now ? "Passing…" : "Watch it pass"; b.classList.toggle("on", now);
     });
-    const all = q("#pass-all"); all.disabled = !on; all.textContent = playing.length > 1 ? "stop" : "watch both pass";
-    q("#pass-note").textContent = on ? "each sweep is drawn to scale: real height, swath width and direction. the times are real, from the image archive."
-      : "pick a place, then watch each sentinel sweep across it.";
+    const all = q("#pass-all"); all.disabled = !on; all.textContent = playing.length > 1 ? "Stop" : "Watch both pass";
+    q("#pass-note").textContent = on ? "Each sweep is drawn to scale: real height, swath width and direction. The times are real, from the image archive."
+      : "Pick a place, then watch each Sentinel sweep across it.";
   }
 
   // ---------------------------------------------------------------- wiring

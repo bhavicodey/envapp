@@ -26,7 +26,7 @@
   function stop() {
     cancelAnimationFrame(raf); raf = 0; running = false; token++;
     clearLayer(); hud.hidden = true;
-    btn.disabled = !state.pin; btn.textContent = "year time-lapse";
+    btn.disabled = !state.pin; btn.textContent = "Year time-lapse";
   }
 
   async function load() {
@@ -48,10 +48,10 @@
       if (age < 1) feats.push({ type: "Feature", properties: { age }, geometry: { type: "Point", coordinates: [p.lon, p.lat] } });
     }
     map.getSource("tl-fires")?.setData({ type: "FeatureCollection", features: feats });
-    $("#tl-date").textContent = fmt(cur).toLowerCase();
+    $("#tl-date").textContent = fmt(cur);
     $("#tl-n").textContent = n.toLocaleString();
     $("#tl-bar").style.width = `${day / DAYS * 100}%`;
-    if (day >= DAYS) { running = false; setHud("done"); btn.disabled = false; btn.textContent = "replay"; return; }
+    if (day >= DAYS) { running = false; setHud("done"); btn.disabled = false; btn.textContent = "Replay"; return; }
     raf = requestAnimationFrame(frame);
   }
 
@@ -60,16 +60,16 @@
     if (running) { stop(); return; }
     window.FirePasses?.stop?.();
     const mine = ++token;
-    loading = true; btn.disabled = true; btn.textContent = "loading…";
+    loading = true; btn.disabled = true; btn.textContent = "Loading…";
     setHud("loading");
-    $("#tl-date").textContent = "loading a year of fires…"; $("#tl-n").textContent = "0"; $("#tl-bar").style.width = "0%";
+    $("#tl-date").textContent = "Loading a year of fires…"; $("#tl-n").textContent = "0"; $("#tl-bar").style.width = "0%";
     try {
       const data = await load();
       if (mine !== token) return;
       if (!data.length) { toast("No fires found here in the last year."); stop(); return; }
       points = data; startMs = state.end - (DAYS - 1) * DAY;
       ensureLayer(); setHud("playing");
-      running = true; btn.textContent = "stop"; btn.disabled = false;
+      running = true; btn.textContent = "Stop"; btn.disabled = false;
       t0 = performance.now(); raf = requestAnimationFrame(frame);
     } catch {
       if (mine === token) { toast("Couldn't load the time-lapse. Try again."); stop(); }

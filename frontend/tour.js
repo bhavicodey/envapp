@@ -16,14 +16,14 @@
   const STEPS = [
     {
       target: () => $("#place-form"),
-      title: "find a place",
-      body: () => "search a town or park, or draw your own area. you can also just click the globe.",
+      title: "Find a place",
+      body: () => "Search a town or park, or draw your own area. You can also just click the globe.",
     },
     {
       target: () => $("#presets"),
-      title: "try a real wildfire",
-      body: () => "pick one of these to see smoke, fires and burn scars light up.",
-      todo: "pick a wildfire to continue",
+      title: "Try a real wildfire",
+      body: () => "Pick one of these to see smoke, fires and burn scars light up.",
+      todo: "Pick a wildfire to continue",
       wait: (done) => {
         $$("#presets button").forEach((b) => {
           const fire = b.dataset.fire === "1";
@@ -37,9 +37,9 @@
     },
     {
       target: () => $("#readout"),
-      title: "your place card",
-      body: () => "the color up top shows the smoke level. below: what to do today, then smoke, sulfur dioxide, fire hotspots and burned area for the last 7 days.",
-      todo: "loading…",
+      title: "Your place card",
+      body: () => "The badge up top shows the smoke level. Below it: the key numbers for the last 7 days, then what to do today.",
+      todo: "Loading…",
       soft: (ready) => {
         const ok = () => { const s = snap(); return s.pin && !s.loading && (s.ins || s.series?.length); };
         if (ok()) { ready(); return () => {}; }
@@ -51,34 +51,34 @@
     },
     {
       target: () => $("#readout .actions"),
-      title: "keep what matters",
-      body: () => "“add to my people” saves the place (home, school, grandma's house) so you can check smoke there any day. “save reading” keeps these numbers.",
+      title: "Keep what matters",
+      body: () => "“Add to my people” saves the place (home, school, Grandma's house) so you can check smoke there any day. “Save reading” keeps these numbers.",
       pad: 8,
     },
     {
       target: () => $("#layers-section"),
-      title: "flip the layers",
-      body: () => "smoke and sulfur dioxide from sentinel-5p, fire hotspots from nasa firms, burn scars from sentinel-2.",
+      title: "Flip the layers",
+      body: () => "Smoke and sulfur dioxide from Sentinel-5P, fire hotspots from NASA FIRMS, burn scars from Sentinel-2.",
     },
     {
       target: () => $("#calendar-section"),
-      title: "burn calendar",
-      body: () => "every square is one day. hotter colors mean more fire. tap a day to jump there.",
+      title: "Burn calendar",
+      body: () => "Every square is one day. Hotter colors mean more fire. Tap a day to jump there.",
     },
     {
       target: () => $("#passes-section"),
-      title: "watch the sentinels pass",
-      body: () => "see sentinel-5p and sentinel-2 sweep across your place, drawn to scale, with the real times they flew over.",
+      title: "Watch the Sentinels pass",
+      body: () => "See Sentinel-5P and Sentinel-2 sweep across your place, drawn to scale, with the real times they flew over.",
     },
     {
       target: () => $("#timeline"),
-      title: "travel through time",
-      body: () => "pick a date, drag the slider, press play, or watch a whole year of fires.",
+      title: "Travel through time",
+      body: () => "Pick a date, drag the slider, press play, or watch a whole year of fires.",
     },
     {
       target: null,
-      title: "you're ready ♡",
-      body: () => "explore your own places. replay this tour any time with the ? button.",
+      title: "You're ready ♡",
+      body: () => "Explore your own places. Replay this tour any time with the ? button.",
       final: true,
     },
   ];
@@ -144,12 +144,12 @@
     i = n; const s = STEPS[i];
     target = s.target ? s.target() : null;
     if (target) reveal(target);
-    stepLbl.textContent = s.final ? "all done" : `step ${i + 1} of ${STEPS.length - 1}`;
+    stepLbl.textContent = s.final ? "All done" : `Step ${i + 1} of ${STEPS.length - 1}`;
     $("#coach-skip").hidden = !!s.final;
     title.textContent = s.title; text.textContent = s.body();
     [...dotsBox.children].forEach((d, k) => d.className = k < i ? "done" : k === i ? "on" : "");
     backBtn.hidden = i === 0 || s.final || !!STEPS[i - 1]?.wait;          
-    nextBtn.querySelector("span").textContent = s.final ? "start exploring" : "next";
+    nextBtn.querySelector("span").textContent = s.final ? "Start exploring" : "Next";
     card.classList.remove("swap"); void card.offsetWidth; card.classList.add("swap");
 
     if (s.wait) {

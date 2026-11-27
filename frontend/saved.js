@@ -85,7 +85,7 @@
       const go = button("go", "", `Open ${r.name}`, () => goToArea({ ...r, name: r.name, date: r.date }));
       go.innerHTML = "<b></b><small></small><span class='stats'></span>";
       go.children[0].textContent = r.name;
-      go.children[1].textContent = `${fmtDate(r.date).toLowerCase()}${v.smoke_level ? ` · ${v.smoke_level.toLowerCase()}` : ""}`;
+      go.children[1].textContent = `${fmtDate(r.date)}${v.smoke_level ? ` · ${v.smoke_level}` : ""}`;
       go.children[2].textContent = `🔥 ${num(v.fire_pixels)} hotspots · SO₂ ${v.so2_du == null ? "–" : v.so2_du.toFixed(2)} DU · ${num(v.burned_ha, " ha")} burned`;
       const rm = button("rm", "×", `Delete ${r.name}`, () => { store.readings = store.readings.filter((x) => x.id !== r.id); commit(); });
       li.append(dot, go, rm); rl.append(li);
@@ -129,7 +129,7 @@
   });
 
   q("#watch-check").addEventListener("click", async () => {
-    const btn = q("#watch-check"), s = window.firescout.snapshot(); btn.disabled = true; btn.textContent = "checking…";
+    const btn = q("#watch-check"), s = window.firescout.snapshot(); btn.disabled = true; btn.textContent = "Checking…";
     await Promise.all(store.places.map(async (w) => {
       try {
         const p = { start: iso(s.end - 6 * DAY), end: iso(s.end), lat: w.lat, lon: w.lon, radius_km: w.radius, include_burn: false };
@@ -142,7 +142,7 @@
         else if (!h && r.signal === "alert") toast(`${w.name}: ${r.signal_reason}`);
       } catch (err) { toast(`${w.name}: ${err.message}`); }
     }));
-    render(); btn.disabled = false; btn.textContent = "check smoke for everyone";
+    render(); btn.disabled = false; btn.textContent = "Check smoke for everyone";
   });
 
   // ---------------------------------------------------------------- downloads
